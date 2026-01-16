@@ -34,3 +34,7 @@ dist-ssr
 
 # OS
 Thumbs.db
+
+# Test files (prevent API key exposure)
+test_*.js
+test_*.ts

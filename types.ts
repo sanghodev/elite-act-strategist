@@ -41,6 +41,7 @@ export interface UserPreferences {
   autoSave: boolean;
   enableTimer: boolean;
   webhookUrl?: string;
+  showKoreanExplanations?: boolean; // Toggle for Korean translations
 }
 
 export interface VocabStats {
@@ -115,7 +116,9 @@ export interface DrillProblem {
   questionText?: string; // Optional: Explicit question text
   options: string[]; // Answer choices
   correctAnswer: string;
-  explanation: string;
+  explanation: string; // Full English explanation
+  explanationSummary?: string; // One-line English summary
+  explanationKorean?: string; // Detailed Korean explanation
   hasNoChange?: boolean; // Whether this question includes NO CHANGE as first option
   answerLabels?: string[]; // ACT-style labels: ['A', 'B', 'C', 'D'] or ['F', 'G', 'H', 'J']
 }

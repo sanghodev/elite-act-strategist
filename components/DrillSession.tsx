@@ -1,24 +1,27 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { DrillProblem, DrillResult, Section } from '../types';
-import { Trophy, CheckCircle2, XCircle, ChevronRight, BrainCircuit, Timer, AlertCircle, Zap } from 'lucide-react';
+import { DrillProblem, DrillResult, Section, User } from '../types';
+import { Trophy, CheckCircle2, XCircle, ChevronRight, BrainCircuit, Timer, AlertCircle, Zap, RotateCcw, Languages } from 'lucide-react';
 
 interface DrillSessionProps {
   drills: DrillProblem[];
   questionType: string;
   section: Section;
   enableTimer: boolean;
+  user: User; // Add user for preferences
   onComplete: (result: DrillResult) => void;
   onCancel: () => void;
+  onContinue?: () => void; // New: Continue training callback
 }
 
-export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType, section, enableTimer, onComplete, onCancel }) => {
+export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType, section, enableTimer, user, onComplete, onCancel, onContinue }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [overtimeCount, setOvertimeCount] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [explanationTab, setExplanationTab] = useState<'summary' | 'full' | 'korean'>('summary'); // New: Explanation tabs
 
   const [timeLeft, setTimeLeft] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
@@ -26,6 +29,7 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
   const timerRef = useRef<any>(null);
 
   const currentDrill = drills[currentIndex];
+  const showKorean = user.preferences.showKoreanExplanations ?? true; // Default to true
 
   // Helper to render bracketed text with an underline style
   const renderRichContent = (content: string) => {
@@ -133,9 +137,16 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
           </div>
         </div>
 
-        <button onClick={onCancel} className="w-full bg-white text-act-black font-bold py-5 rounded-2xl hover:bg-gray-200 transition-all uppercase font-mono tracking-widest text-xs">
-          Commit Data to Cloud
-        </button>
+        <div className="flex gap-3">
+          {onContinue && (
+            <button onClick={onContinue} className="flex-1 glass border-act-accent border-2 text-act-accent font-bold py-5 rounded-2xl hover:bg-act-accent hover:text-white transition-all uppercase font-mono tracking-widest text-xs flex items-center justify-center gap-2">
+              <RotateCcw size={18} /> Continue Training
+            </button>
+          )}
+          <button onClick={onCancel} className="flex-1 bg-white text-act-black font-bold py-5 rounded-2xl hover:bg-gray-200 transition-all uppercase font-mono tracking-widest text-xs">
+            Commit Data to Cloud
+          </button>
+        </div>
       </div>
     );
   }
@@ -191,11 +202,58 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
       </div>
 
       {isRevealed && (
-        <div className="bg-act-accent/10 border border-act-accent/20 p-6 rounded-2xl animate-in slide-in-from-left-4">
-          <div className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase text-act-accent tracking-widest mb-2">
-            <BrainCircuit size={14} /> Strategic Insight
+        <div className="bg-act-accent/10 border border-act-accent/20 rounded-2xl overflow-hidden animate-in slide-in-from-left-4">
+          {/* Tab Headers */}
+          <div className="flex border-b border-act-accent/20">
+            <button
+              onClick={() => setExplanationTab('summary')}
+              className={`flex-1 px-4 py-3 font-mono text-xs uppercase font-bold transition-all flex items-center justify-center gap-2 ${explanationTab === 'summary'
+                  ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <Zap size={14} /> Core Concept
+            </button>
+            <button
+              onClick={() => setExplanationTab('full')}
+              className={`flex-1 px-4 py-3 font-mono text-xs uppercase font-bold transition-all flex items-center justify-center gap-2 ${explanationTab === 'full'
+                  ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <BrainCircuit size={14} /> Full Analysis
+            </button>
+            {showKorean && currentDrill.explanationKorean && (
+              <button
+                onClick={() => setExplanationTab('korean')}
+                className={`flex-1 px-4 py-3 font-mono text-xs uppercase font-bold transition-all flex items-center justify-center gap-2 ${explanationTab === 'korean'
+                    ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+              >
+                <Languages size={14} /> 한글 설명
+              </button>
+            )}
           </div>
-          <p className="text-xs text-blue-200 leading-relaxed font-mono">{currentDrill.explanation}</p>
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {explanationTab === 'summary' && currentDrill.explanationSummary && (
+              <p className="text-base text-act-accent font-semibold leading-relaxed">
+                {currentDrill.explanationSummary}
+              </p>
+            )}
+            {explanationTab === 'full' && (
+              <p className="text-xs text-blue-200 leading-relaxed font-mono">
+                {currentDrill.explanation}
+              </p>
+            )}
+            {explanationTab === 'korean' && currentDrill.explanationKorean && (
+              <p className="text-sm text-blue-100 leading-relaxed" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                {currentDrill.explanationKorean}
+              </p>
+            )}
+          </div>
         </div>
       )}
 

@@ -443,6 +443,26 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
     - Do NOT include "NO CHANGE" in options
     - Use regular answer choices
     - Still use answerLabels: ["A", "B", "C", "D"]
+    
+    [BILINGUAL EXPLANATIONS - REQUIRED]
+    For EVERY drill, you must provide THREE types of explanations:
+    
+    1. **explanation**: Full detailed English explanation (existing format)
+       - Format: "Why correct: [reason]. Why others fail: [specific traps]"
+       - Be comprehensive and technical
+    
+    2. **explanationSummary**: ONE-LINE English core concept summary
+       - Maximum 15 words
+       - Focus on the KEY rule or concept being tested
+       - Example: "Present perfect tense shows action starting in past, continuing to present."
+       - Example: "Semicolons join independent clauses; commas cannot."
+    
+    3. **explanationKorean**: Detailed Korean explanation
+       - Translate and EXPAND the full explanation into Korean
+       - Use clear, educational Korean
+       - Include examples in Korean if helpful
+       - Make it accessible for Korean-speaking students
+       - Example: "현재완료 시제는 과거에 시작되어 현재까지 계속되는 행동을 나타냅니다. 'has affected'는 2008년에 시작된 경기 침체가 현재까지도 영향을 미치고 있음을 보여줍니다. 'affected' (과거)는 이미 끝난 행동을 의미하므로 부적절하고, 'had affected' (과거완료)는 과거의 특정 시점 이전을 나타내므로 문맥에 맞지 않습니다."
   `;
 
   const responseSchema = {
@@ -458,6 +478,8 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
         options: { type: Type.ARRAY, items: { type: Type.STRING } },
         correctAnswer: { type: Type.STRING },
         explanation: { type: Type.STRING },
+        explanationSummary: { type: Type.STRING },
+        explanationKorean: { type: Type.STRING },
         hasNoChange: { type: Type.BOOLEAN },
         answerLabels: { type: Type.ARRAY, items: { type: Type.STRING } }
       },

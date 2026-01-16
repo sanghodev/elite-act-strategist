@@ -243,7 +243,7 @@ export const analyzeProblem = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-flash-002",
       contents: { parts },
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -334,7 +334,7 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-flash-002",
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -428,7 +428,7 @@ export const generateVocabDrill = async (word: string): Promise<DrillProblem> =>
   };
 
   const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
+    model: "gemini-1.5-flash-002",
     contents: prompt,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,

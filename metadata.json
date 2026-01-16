@@ -1,0 +1,7 @@
+{
+  "name": "Elite ACT Strategist",
+  "description": "A data-driven, ruthless ACT performance optimizer that diagnoses cognitive error patterns and generates targeted drills to reach the 34-36 range.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

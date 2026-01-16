@@ -394,6 +394,55 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
     - A 34-scorer should get 1-2 correct
     - A 36-scorer should get 3/3 correct with confidence
     - Each drill must directly address the original fault pattern
+    
+    [ACT-AUTHENTIC FORMATTING - CRITICAL]
+    **For English/Grammar drills, you MUST follow this exact format:**
+    
+    1. **passage**: The full sentence/paragraph with [underlined portion] in brackets
+       - Do NOT include answer choices in the passage
+       - Example: "The proliferation of misinformation, particularly via social media platforms, [has engendered] a climate of skepticism."
+    
+    2. **underlinedText**: Extract ONLY the text inside the brackets (without brackets)
+       - This is what "NO CHANGE" would keep
+       - Example: "has engendered"
+    
+    3. **options**: Array of 4 answer choices
+       - **ALWAYS** make the first option "NO CHANGE" for English questions
+       - The other 3 options are alternative phrasings/corrections
+       - Example: ["NO CHANGE", "has been engendering", "is engendering", "will have engendered"]
+    
+    4. **correctAnswer**: Must be one of the options (including "NO CHANGE" if appropriate)
+       - Example: "NO CHANGE" or "has been engendering"
+    
+    5. **hasNoChange**: Set to true for English questions, false for Reading/Math/Science
+    
+    6. **answerLabels**: Use ACT-style labels
+       - For odd-numbered questions: ["A", "B", "C", "D"]
+       - For even-numbered questions: ["F", "G", "H", "J"]
+       - Since we don't know question number, default to ["A", "B", "C", "D"]
+    
+    7. **content**: Keep the same as passage for backward compatibility
+    
+    **Example English Drill:**
+    \`\`\`json
+    {
+      "type": "Cloned",
+      "passage": "The economic downturn, which began in 2008, [has affected] millions of workers nationwide.",
+      "underlinedText": "has affected",
+      "content": "The economic downturn, which began in 2008, [has affected] millions of workers nationwide.",
+      "options": ["NO CHANGE", "affected", "had affected", "will affect"],
+      "correctAnswer": "NO CHANGE",
+      "hasNoChange": true,
+      "answerLabels": ["A", "B", "C", "D"],
+      "explanation": "..."
+    }
+    \`\`\`
+    
+    **For Reading/Science/Math drills:**
+    - Set hasNoChange to false
+    - Do NOT include "NO CHANGE" in options
+    - Use regular answer choices
+    - Still use answerLabels: ["A", "B", "C", "D"]
   `;
 
   const responseSchema = {
@@ -403,9 +452,14 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
       properties: {
         type: { type: Type.STRING, enum: ["Cloned", "Pressure", "Edge Case"] },
         content: { type: Type.STRING },
+        passage: { type: Type.STRING },
+        underlinedText: { type: Type.STRING },
+        questionText: { type: Type.STRING },
         options: { type: Type.ARRAY, items: { type: Type.STRING } },
         correctAnswer: { type: Type.STRING },
         explanation: { type: Type.STRING },
+        hasNoChange: { type: Type.BOOLEAN },
+        answerLabels: { type: Type.ARRAY, items: { type: Type.STRING } }
       },
       required: ["type", "content", "explanation", "options", "correctAnswer"]
     }

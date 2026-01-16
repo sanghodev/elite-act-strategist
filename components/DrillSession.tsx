@@ -157,14 +157,21 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
 
       <div className={`glass p-10 rounded-3xl border-l-4 transition-all duration-500 ${isOvertime ? 'border-act-red bg-act-red/[0.02] shadow-[0_0_40px_rgba(255,77,77,0.1)]' : 'border-act-accent'}`}>
         <p className="text-xl font-medium leading-relaxed text-white/90">
-          {renderRichContent(currentDrill.content)}
+          {renderRichContent(currentDrill.passage || currentDrill.content)}
         </p>
+        {currentDrill.questionText && (
+          <p className="text-sm text-gray-400 mt-4 italic">
+            {currentDrill.questionText}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-3">
         {currentDrill.options.map((option, idx) => {
           const isSelected = selectedOption === option;
           const isCorrect = option === currentDrill.correctAnswer;
+          const label = currentDrill.answerLabels?.[idx] || String.fromCharCode(65 + idx); // A, B, C, D...
+
           let style = 'bg-white/[0.02] border-white/5 text-gray-400';
           if (isRevealed) {
             if (isCorrect) style = 'bg-act-green/20 border-act-green text-act-green';
@@ -173,8 +180,9 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
           } else if (isSelected) style = 'bg-act-accent/20 border-act-accent text-white scale-[1.01]';
 
           return (
-            <button key={idx} onClick={() => !isRevealed && setSelectedOption(option)} className={`p-6 rounded-2xl text-left font-mono text-sm transition-all border-2 flex items-center justify-between group ${style}`}>
-              <span>{option}</span>
+            <button key={idx} onClick={() => !isRevealed && setSelectedOption(option)} className={`p-6 rounded-2xl text-left font-mono text-sm transition-all border-2 flex items-center gap-4 group ${style}`}>
+              <span className="font-bold text-lg min-w-[2rem]">{label}.</span>
+              <span className="flex-1">{option}</span>
               {isRevealed && isCorrect && <CheckCircle2 size={20} />}
               {isRevealed && isSelected && !isCorrect && <XCircle size={20} />}
             </button>

@@ -109,11 +109,17 @@ export interface AnalysisData {
 
 export interface DrillProblem {
   type: 'Cloned' | 'Pressure' | 'Edge Case';
-  content: string;
-  options: string[];
+  content: string; // Full passage with [underlined portion]
+  passage?: string; // Optional: Passage without answer choices (for ACT English)
+  underlinedText?: string; // The original underlined text (what NO CHANGE would keep)
+  questionText?: string; // Optional: Explicit question text
+  options: string[]; // Answer choices
   correctAnswer: string;
   explanation: string;
+  hasNoChange?: boolean; // Whether this question includes NO CHANGE as first option
+  answerLabels?: string[]; // ACT-style labels: ['A', 'B', 'C', 'D'] or ['F', 'G', 'H', 'J']
 }
+
 
 export interface DrillResult {
   timestamp: number;

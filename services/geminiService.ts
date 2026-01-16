@@ -2,7 +2,82 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisData, DrillProblem, Section, ErrorCategory, TACTICAL_MAP } from "../types";
 
+// Gemini Model Fallback Configuration
+// Priority order: Latest experimental → Stable → Lightweight
+const GEMINI_MODELS = [
+  "gemini-2.0-flash-exp",      // Latest, experimental, may have tighter quotas
+  "gemini-1.5-flash",          // Stable, 1500 RPD free tier
+  "gemini-1.5-flash-8b"        // Lightweight, fallback option
+] as const;
+
+/**
+ * Fallback system for Gemini API calls
+ * Tries models in order until one succeeds or all fail
+ * Handles quota exhaustion, rate limits, and model availability errors
+ */
+async function callGeminiWithFallback<T>(
+  ai: GoogleGenAI,
+  requestConfig: {
+    contents: any;
+    config: {
+      systemInstruction?: string;
+      responseMimeType?: string;
+      responseSchema?: any;
+    };
+  }
+): Promise<{ text: string; model: string }> {
+  let lastError: Error | null = null;
+
+  for (const model of GEMINI_MODELS) {
+    try {
+      console.log(`[Gemini Fallback] Trying model: ${model}`);
+
+      const response = await ai.models.generateContent({
+        model,
+        ...requestConfig
+      });
+
+      if (!response.text) {
+        throw new Error(`Empty response from ${model}`);
+      }
+
+      console.log(`[Gemini Fallback] ✅ Success with model: ${model}`);
+      return { text: response.text, model };
+
+    } catch (error: any) {
+      console.warn(`[Gemini Fallback] ❌ Failed with ${model}:`, error.message);
+      lastError = error;
+
+      // Check if error is quota/rate limit related
+      const errorMessage = error.message?.toLowerCase() || '';
+      const isQuotaError =
+        errorMessage.includes('quota') ||
+        errorMessage.includes('resource_exhausted') ||
+        errorMessage.includes('429') ||
+        errorMessage.includes('rate limit');
+
+      // If it's a quota error, try next model
+      if (isQuotaError) {
+        console.log(`[Gemini Fallback] Quota/rate limit hit, trying next model...`);
+        continue;
+      }
+
+      // If it's not a quota error (e.g., invalid request), don't retry
+      console.error(`[Gemini Fallback] Non-quota error, stopping fallback`);
+      throw error;
+    }
+  }
+
+  // All models failed
+  console.error(`[Gemini Fallback] All models exhausted`);
+  throw new Error(
+    `All Gemini models failed. Last error: ${lastError?.message || 'Unknown error'}. ` +
+    `Please check your API key quota at https://aistudio.google.com/apikey`
+  );
+}
+
 const SYSTEM_INSTRUCTION = `You are the ELITE ACT Master Strategist - specialized in transforming 34-scorers into 36-scorers.
+
 
 CORE IDENTITY:
 You are NOT a general tutor. You are a precision instrument designed for students who:
@@ -242,8 +317,7 @@ export const analyzeProblem = async (
   };
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+    const { text, model } = await callGeminiWithFallback(ai, {
       contents: { parts },
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -252,8 +326,8 @@ export const analyzeProblem = async (
       }
     });
 
-    if (!response.text) throw new Error("Empty response from AI strategist.");
-    return JSON.parse(response.text);
+    console.log(`[Analysis] Used model: ${model}`);
+    return JSON.parse(text);
   } catch (error) {
     console.error("Analysis Error:", error);
     throw error;
@@ -303,6 +377,11 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
        - Difficulty: 10/10 (36-level trap)
     
     [CONTENT REQUIREMENTS]
+    - **ACT-STYLE FORMATTING**: Wrap the portion being tested in square brackets [like this]
+      Example: "The proliferation of misinformation, particularly via social media platforms, [has engendered] a climate of skepticism."
+      The bracketed portion will be displayed with an underline in the UI, just like real ACT questions
+    - For English/Grammar drills, bracket the specific phrase, word, or punctuation being tested
+    - For Reading/Science drills, bracket key terms or phrases that are central to the question
     - Use college-level vocabulary and complex sentence structures
     - Distractors must be TEMPTING - not obviously wrong
     - Each wrong answer should represent a specific misconception
@@ -333,8 +412,7 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
   };
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+    const { text, model } = await callGeminiWithFallback(ai, {
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -342,8 +420,8 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
         responseSchema: responseSchema
       }
     });
-    if (!response.text) throw new Error("Empty response from AI drill generator.");
-    return JSON.parse(response.text);
+    console.log(`[Drills] Used model: ${model}`);
+    return JSON.parse(text);
   } catch (error) {
     console.error("Drill Generation Error:", error);
     throw error;
@@ -427,8 +505,7 @@ export const generateVocabDrill = async (word: string): Promise<DrillProblem> =>
     required: ["type", "content", "options", "correctAnswer", "explanation"]
   };
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+  const { text, model } = await callGeminiWithFallback(ai, {
     contents: prompt,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
@@ -437,5 +514,6 @@ export const generateVocabDrill = async (word: string): Promise<DrillProblem> =>
     }
   });
 
-  return JSON.parse(response.text);
+  console.log(`[Vocab] Used model: ${model}`);
+  return JSON.parse(text);
 };

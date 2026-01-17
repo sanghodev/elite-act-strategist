@@ -114,7 +114,7 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({ onAnalysisComplete, 
                 </div>
               </div>
             )}
-            <input type="file" ref={fileInputRef} onChange={handleImageUpload} multiple accept="image/*" className="hidden" />
+            <input type="file" ref={fileInputRef} onChange={handleImageUpload} multiple accept="image/*" capture="environment" className="hidden" />
           </div>
 
           <div className="glass p-5 rounded-2xl border-l-4 border-yellow-500 flex gap-4">

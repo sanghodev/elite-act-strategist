@@ -158,61 +158,108 @@ export const analyzeProblem = async (
     [IMAGE ANALYSIS - CRITICAL PRIORITY]
     The student has uploaded ${base64Images.length} image(s) of the problem.
     
+    ═══════════════════════════════════════════════════════════════
+    STEP 1: DESCRIBE WHAT YOU SEE
+    ═══════════════════════════════════════════════════════════════
+    Before analyzing, first mentally describe the image:
+    - Is this a passage with questions, or just a question?
+    - Can you see answer choices clearly?
+    - Is there an answer key or explanation visible?
+    - Are there any student markings (circles, checks, highlights)?
+    - What question number is this?
+    
+    ═══════════════════════════════════════════════════════════════
+    STEP 2: EXTRACT THE CORRECT ANSWER (MOST IMPORTANT!)
+    ═══════════════════════════════════════════════════════════════
+    
+    **CRITICAL**: The student may have filled in the WRONG answer in the form fields.
+    Your PRIMARY job is to find the ACTUAL correct answer from the image itself.
+    
+    **Look for these visual indicators** (in order of reliability):
+    
+    1. **Answer Key Section**: 
+       - Text like "Answer: C" or "Correct Answer: C"
+       - A separate answer key table or list
+       - Bold or highlighted correct answer
+    
+    2. **Explanation Section**:
+       - Text that says "Choice C is correct because..."
+       - Explanations that reference the correct answer
+       - Rationale that identifies the right choice
+    
+    3. **Visual Markers**:
+       - Checkmarks (✓) next to the correct answer
+       - Green highlighting on correct choice
+       - "CORRECT" label next to an option
+    
+    **IGNORE these** (they are likely WRONG):
+    - Student's circles or marks on answer choices
+    - Crossed out options
+    - Student's handwritten notes
+    
     ${section === Section.English ? `
-    **ENGLISH SECTION SPECIAL INSTRUCTIONS:**
-    ACT English questions often have UNDERLINED portions in the passage, but the image may not show clear underlines.
+    ═══════════════════════════════════════════════════════════════
+    STEP 3: ENGLISH-SPECIFIC EXTRACTION
+    ═══════════════════════════════════════════════════════════════
     
-    YOUR TASKS:
-    1. **LOCATE THE QUESTION NUMBER** in the image
-       - Find which numbered question this is (e.g., "23.", "24.", etc.)
-       - The question number usually appears in brackets or parentheses in the passage
+    For ACT English questions:
     
-    2. **IDENTIFY THE UNDERLINED PORTION**
-       - Look for the text segment that corresponds to that question number
-       - In ACT English, the underlined portion is what needs to be evaluated
-       - It might be a phrase, a word, or punctuation
-       - Extract the EXACT text that is being questioned
+    A. **LOCATE QUESTION NUMBER**:
+       - Look for numbers in brackets like [23] or (23) in the passage
+       - Or question numbers at the bottom like "23. A B C D"
     
-    3. **EXTRACT ALL ANSWER CHOICES**
-       - Usually labeled A, B, C, D or F, G, H, J
-       - One choice is often "NO CHANGE"
-       - Get the complete text of each choice
+    B. **IDENTIFY UNDERLINED PORTION**:
+       - Find the text that corresponds to that question number
+       - It may be underlined, in brackets, or numbered
+       - Extract the EXACT text being questioned
+       - Example: If you see "The cat [was sleeping] peacefully", extract "was sleeping"
     
-    4. **FIND THE ACTUAL CORRECT ANSWER**
-       - Look for answer keys, explanations, or correct answer indicators
-       - Check for text like "Correct Answer: C" or similar
-       - If there's an explanation, it will indicate which choice is correct
-       - The student may have circled the WRONG answer - ignore their marking
+    C. **EXTRACT ALL ANSWER CHOICES**:
+       - Usually A, B, C, D (odd questions) or F, G, H, J (even questions)
+       - First choice is often "NO CHANGE"
+       - Get complete text: "A. NO CHANGE", "B. is sleeping", etc.
     
-    5. **DETERMINE WHAT THE STUDENT SELECTED**
-       - Look for circles, checkmarks, or highlights
-       - This is likely wrong (that's why they're analyzing it)
+    D. **VERIFY CORRECT ANSWER**:
+       - Cross-reference with answer key
+       - If answer key says "23. C", then choice C is correct
+       - Extract the FULL TEXT of choice C for the 'correctAnswerContent' field
     ` : `
-    **GENERAL SECTION INSTRUCTIONS:**
-    1. **EXTRACT THE ACTUAL CORRECT ANSWER** from the image
-       - Look for answer keys, explanations, or marked correct answers
-       - The student may have circled the WRONG answer - ignore their marking
-       - Find the TRUE correct answer from the test material
-       - If you see "Correct Answer: C" or similar, use that
-       - If you see explanations that indicate the right answer, extract it
+    ═══════════════════════════════════════════════════════════════
+    STEP 3: GENERAL SECTION EXTRACTION
+    ═══════════════════════════════════════════════════════════════
     
-    2. **IDENTIFY THE PROBLEM CONTENT**
-       - Extract the full question text
-       - Identify underlined portions or specific test points
-       - Note all answer choices (A, B, C, D, etc.)
+    A. **EXTRACT QUESTION TEXT**:
+       - Get the complete question being asked
+       - Include any passage or context provided
     
-    3. **DETERMINE WHAT THE STUDENT SELECTED**
-       - Look for circles, marks, or highlights the student made
-       - This is likely WRONG - that's why they're analyzing it
+    B. **EXTRACT ALL ANSWER CHOICES**:
+       - Usually A, B, C, D
+       - Get complete text of each option
+    
+    C. **VERIFY CORRECT ANSWER**:
+       - Find answer key or explanation
+       - Extract the FULL TEXT of the correct choice
     `}
     
-    CRITICAL: The "Correct Response" field below may be WRONG if the student filled it incorrectly.
-    Your PRIMARY job is to find the ACTUAL correct answer from the image and use that for analysis.
+    ═══════════════════════════════════════════════════════════════
+    STEP 4: IDENTIFY STUDENT'S MISTAKE
+    ═══════════════════════════════════════════════════════════════
     
-    For the 'underlinedSnippet' field in your response:
-    - Extract the EXACT text that is being tested (the underlined portion)
-    - This should be the specific phrase/word/punctuation being questioned
-    - Make it clear and specific so the student knows exactly what to focus on
+    - Look for the student's markings (circles, highlights)
+    - This is what they CHOSE (likely wrong)
+    - Compare to the ACTUAL correct answer from the answer key
+    - This difference is what you'll analyze
+    
+    ═══════════════════════════════════════════════════════════════
+    CRITICAL REMINDERS
+    ═══════════════════════════════════════════════════════════════
+    
+    ⚠️ The "Correct Response" field below may be WRONG (student's mistake)
+    ✅ Your PRIMARY job: Find ACTUAL correct answer from IMAGE
+    📸 Prioritize information from IMAGE over text fields
+    🎯 For 'underlinedSnippet': Extract EXACT tested text
+    🔍 For 'correctAnswerContent': Extract FULL TEXT of correct choice
+    
     ` : ''}
     
     [INTEL PACKAGE]

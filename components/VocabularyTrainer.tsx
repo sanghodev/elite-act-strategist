@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Book, Zap, BrainCircuit, Loader2, CheckCircle2, XCircle, ChevronRight, Target, Flame, Sparkles, AlertCircle, TrendingUp, BarChart3, Clock, Trophy, RefreshCcw, Layout, Calendar, Eye, EyeOff, Search, Filter, Crosshair } from 'lucide-react';
-import { generateVocabDrill } from '../services/geminiService';
+import { getCachedDrill, getDailyVocabDrills } from '../services/drillCacheService';
 import { DrillProblem, VocabStats, User, VocabData } from '../types';
 import { ResponsiveContainer, AreaChart, Area, XAxis, CartesianGrid, Tooltip, Cell, PieChart, Pie } from 'recharts';
 import { ACT_ELITE_VOCAB } from '../data/vocabList';
@@ -93,7 +93,7 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
         }
     }, [user?.vocabData]); // Only re-run if cloud data explicitly updates/loads
 
-    const generateNewDailyMission = (currentMastered: string[]) => {
+    const generateNewDailyMission = async (currentMastered: string[]) => {
         const today = new Date().toISOString().split('T')[0];
         const dailyGoal = studyPlan?.daily_goal || DAILY_GOAL; // Use study plan goal or fallback to 10
         const unmastered = ACT_ELITE_VOCAB.filter(w => !currentMastered.includes(w));
@@ -107,6 +107,13 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
 
         setDailyMission(newMission);
         setDailyProgress(0);
+
+        // Pre-generate and cache drills for all daily mission words (batch API call)
+        if (user?.id) {
+            getDailyVocabDrills(user.id, newMission).catch(err => {
+                console.error('Failed to pre-generate drills:', err);
+            });
+        }
 
         // Persist immediately
         saveAllData(currentMastered, stats, newMission, 0, latencyHistory, accuracyHistory, today);
@@ -202,7 +209,11 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
         setPeekWord(false);
         setView('drill');
         try {
-            const data = await generateVocabDrill(word);
+            // Use cached drill if available, otherwise generate and cache
+            const data = await getCachedDrill(user?.id || 'guest', word);
+            if (!data) {
+                throw new Error('Failed to load drill');
+            }
             setDrill(data);
             setStartTime(Date.now());
         } catch (e) {

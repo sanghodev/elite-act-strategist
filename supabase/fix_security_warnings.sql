@@ -54,6 +54,11 @@ DROP POLICY IF EXISTS "Public Users" ON users;
 DROP POLICY IF EXISTS "Enable insert for all users" ON users;
 DROP POLICY IF EXISTS "Enable update for all users" ON users;
 DROP POLICY IF EXISTS "Enable delete for all users" ON users;
+-- Drop new policies if they exist (in case of re-run)
+DROP POLICY IF EXISTS "Users can view all users" ON users;
+DROP POLICY IF EXISTS "Users can insert own user" ON users;
+DROP POLICY IF EXISTS "Users can update own user" ON users;
+DROP POLICY IF EXISTS "Users can delete own user" ON users;
 
 -- Create proper RLS policies for users table
 -- Note: Since this app uses localStorage-based auth (not Supabase Auth),
@@ -85,6 +90,11 @@ DROP POLICY IF EXISTS "Public Access History" ON history;
 DROP POLICY IF EXISTS "Enable insert for all history" ON history;
 DROP POLICY IF EXISTS "Enable update for all history" ON history;
 DROP POLICY IF EXISTS "Enable delete for all history" ON history;
+-- Drop new policies if they exist (in case of re-run)
+DROP POLICY IF EXISTS "Users can view own history" ON history;
+DROP POLICY IF EXISTS "Users can insert own history" ON history;
+DROP POLICY IF EXISTS "Users can update own history" ON history;
+DROP POLICY IF EXISTS "Users can delete own history" ON history;
 
 -- Create proper RLS policies for history table
 -- Users can only access their own history

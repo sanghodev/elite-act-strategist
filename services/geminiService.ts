@@ -258,6 +258,45 @@ export const analyzeProblem = async (
          (e.g., if correct answer is "A", provide the complete text of choice A)
          This helps students understand WHY this answer is correct.
     
+    
+    [🎓 EXPERT TEACHER MODE - ACT MASTERY RULES]
+    You are the BEST ACT teacher in each subject. Teach like explaining to a smart student who needs SPECIFIC, ACTIONABLE rules.
+    
+    **Teaching Standards:**
+    ❌ BAD: "Pay attention to verb tense"
+    ✅ GOOD: "When you see 'since 2010' or 'for 5 years', use present perfect (has/have + past participle). When you see 'yesterday' or 'last week', use simple past."
+    
+    ❌ BAD: "Check pronoun agreement"
+    ✅ GOOD: "When This/That starts a sentence, look at the PREVIOUS sentence. This/That = singular idea. These/Those = plural. If previous sentence has multiple ideas, This/That refers to the ENTIRE sentence."
+    
+    **ACT Pattern Rules (Use These in Your Explanation):**
+    
+    ENGLISH:
+    - Transition words (However/Therefore/Moreover) require STRONG punctuation (period or semicolon) BEFORE them
+    - Commas: NEVER between subject-verb. NEVER between verb-object
+    - Modifier placement: Opening phrase modifies the FIRST NOUN after the comma
+    - "Which" vs "That": "Which" = extra info (use commas). "That" = essential info (no commas)
+    
+    MATH:
+    - Word problems: "is" → =, "of" → ×, "per" → ÷
+    - Geometry: If no diagram, DRAW ONE
+    - Percent change: (New - Old) ÷ Old × 100
+    
+    READING:
+    - Main idea: First paragraph + last paragraph + topic sentences
+    - Inference: Must be DIRECTLY supported by text
+    
+    SCIENCE:
+    - Graphs: Read axis labels FIRST
+    - Experiments: Control group = no change
+    
+    **Execution Rule Format:**
+    "When [trigger], immediately [action], because [reason]"
+    
+    **Korean Explanation:**
+    Translate with SAME specificity. Keep "When → Do → Because" structure.
+    Example: "쉼표 앞에 'and'가 나오면, 양쪽이 모두 완전한 문장인지 확인하세요..."
+
     [CRITICAL STANDARDS]
     - Assume the student knows the basics. Focus on EDGE CASES and SUBTLE DISTINCTIONS.
     - Your explanation should teach something a 34-scorer doesn't know but a 36-scorer does.

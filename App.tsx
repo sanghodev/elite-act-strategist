@@ -192,7 +192,7 @@ const App: React.FC = () => {
             {drills && <button onClick={() => setCurrentView('drills')} className="w-full bg-[#2e7dff] text-white font-bold py-6 rounded-3xl hover:bg-blue-600 transition-all uppercase font-mono tracking-widest text-sm shadow-xl shadow-act-accent/20">Commence Live Drills</button>}
           </div>
         )}
-        {currentView === 'drills' && drills && <DrillSession drills={drills} questionType={lastAnalysis?.surface.questionType || 'Mixed'} section={lastAnalysis?.surface.section || Section.English} enableTimer={user.preferences.enableTimer} onComplete={handleDrillComplete} onCancel={() => setCurrentView('dashboard')} />}
+        {currentView === 'drills' && drills && <DrillSession drills={drills} questionType={lastAnalysis?.surface.questionType || 'Mixed'} section={lastAnalysis?.surface.section || Section.English} enableTimer={user.preferences.enableTimer} user={user} onComplete={handleDrillComplete} onCancel={() => setCurrentView('dashboard')} onContinue={() => handleGenerateDrills(lastAnalysis || undefined)} />}
         {currentView === 'training' && <TrainingGrounds masteryData={masteryData} history={history} onDeployDrill={(analysis) => { setLastAnalysis(analysis as AnalysisData); setDrills(null); setCurrentView('analysis-result'); }} loading={loadingDrills} />}
         {currentView === 'vocab' && <VocabularyTrainer user={user} onUpdateUser={handleUpdateUser} />}
         {currentView === 'docs' && <Documentation />}

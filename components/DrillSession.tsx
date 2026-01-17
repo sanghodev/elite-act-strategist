@@ -208,8 +208,8 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
             <button
               onClick={() => setExplanationTab('summary')}
               className={`flex-1 px-4 py-3 font-mono text-xs uppercase font-bold transition-all flex items-center justify-center gap-2 ${explanationTab === 'summary'
-                  ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
             >
               <Zap size={14} /> Core Concept
@@ -217,8 +217,8 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
             <button
               onClick={() => setExplanationTab('full')}
               className={`flex-1 px-4 py-3 font-mono text-xs uppercase font-bold transition-all flex items-center justify-center gap-2 ${explanationTab === 'full'
-                  ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
             >
               <BrainCircuit size={14} /> Full Analysis
@@ -227,8 +227,8 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
               <button
                 onClick={() => setExplanationTab('korean')}
                 className={`flex-1 px-4 py-3 font-mono text-xs uppercase font-bold transition-all flex items-center justify-center gap-2 ${explanationTab === 'korean'
-                    ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-act-accent/20 text-act-accent border-b-2 border-act-accent'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
               >
                 <Languages size={14} /> 한글 설명
@@ -238,9 +238,9 @@ export const DrillSession: React.FC<DrillSessionProps> = ({ drills, questionType
 
           {/* Tab Content */}
           <div className="p-6">
-            {explanationTab === 'summary' && currentDrill.explanationSummary && (
+            {explanationTab === 'summary' && (
               <p className="text-base text-act-accent font-semibold leading-relaxed">
-                {currentDrill.explanationSummary}
+                {currentDrill.explanationSummary || currentDrill.explanation}
               </p>
             )}
             {explanationTab === 'full' && (

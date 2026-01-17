@@ -3,6 +3,83 @@ import { Section, AnalysisData } from '../types';
 import { Camera, Upload, Send, X, AlertCircle, Image as ImageIcon, Crosshair, Loader2 } from 'lucide-react';
 import { analyzeProblem } from '../services/geminiService';
 
+/**
+ * Process uploaded image for optimal OCR quality
+ * - Upscales to higher resolution (max 2048px)
+ * - Applies contrast enhancement for text clarity
+ * - Exports with high quality compression (0.95)
+ */
+const processImageForOCR = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const img = new Image();
+
+      img.onload = () => {
+        // Create canvas with higher resolution
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+
+        // Calculate optimal dimensions (max 2048px width, maintain aspect ratio)
+        const MAX_WIDTH = 2048;
+        const MAX_HEIGHT = 2048;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = (height * MAX_WIDTH) / width;
+          width = MAX_WIDTH;
+        }
+
+        if (height > MAX_HEIGHT) {
+          width = (width * MAX_HEIGHT) / height;
+          height = MAX_HEIGHT;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Enable image smoothing for better quality
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Draw image
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Enhance contrast for better text recognition
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+
+        // Simple contrast enhancement (factor 1.2)
+        const factor = 1.2;
+        for (let i = 0; i < data.length; i += 4) {
+          data[i] = Math.min(255, Math.max(0, factor * (data[i] - 128) + 128));     // R
+          data[i + 1] = Math.min(255, Math.max(0, factor * (data[i + 1] - 128) + 128)); // G
+          data[i + 2] = Math.min(255, Math.max(0, factor * (data[i + 2] - 128) + 128)); // B
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        // Export as high-quality JPEG (0.95 quality)
+        const processedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        resolve(processedDataUrl);
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
 interface ProblemInputProps {
   onAnalysisComplete: (data: AnalysisData, userAnswer: string, correctAnswer: string) => void;
   history: any[];
@@ -19,17 +96,27 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({ onAnalysisComplete, 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fix for line 30: Cast file to any or File to resolve 'unknown' type error in readAsDataURL
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Process images with quality enhancement for better OCR
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      Array.from(files).forEach((file: any) => {
+    if (!files) return;
+
+    const fileArray = Array.from(files);
+
+    for (const file of fileArray) {
+      try {
+        // Process image for optimal OCR quality
+        const processedImage = await processImageForOCR(file);
+        setImages(prev => [...prev, processedImage]);
+      } catch (error) {
+        console.error('Image processing failed, using original:', error);
+        // Fallback to original image if processing fails
         const reader = new FileReader();
         reader.onloadend = () => {
           setImages(prev => [...prev, reader.result as string]);
         };
         reader.readAsDataURL(file);
-      });
+      }
     }
   };
 

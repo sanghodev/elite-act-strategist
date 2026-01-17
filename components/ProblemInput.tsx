@@ -160,13 +160,26 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({ onAnalysisComplete, 
           <p className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.3em]">Sector Engagement & Pattern Recognition</p>
         </div>
         <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
-          {Object.values(Section).map(s => (
+          {[Section.English, Section.Math].map(s => (
             <button
               key={s}
               onClick={() => setSection(s)}
               className={`px-6 py-2 rounded-xl text-[10px] font-mono font-bold uppercase transition-all ${section === s ? 'bg-act-red text-white shadow-lg shadow-act-red/20' : 'text-gray-500 hover:text-gray-300'}`}
             >
               {s}
+            </button>
+          ))}
+          {[Section.Reading, Section.Science].map(s => (
+            <button
+              key={s}
+              disabled
+              className="px-6 py-2 rounded-xl text-[10px] font-mono font-bold uppercase text-gray-700 opacity-30 cursor-not-allowed relative group"
+              title="Not yet optimized for 36-level analysis"
+            >
+              {s}
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-yellow-500/90 text-black text-[8px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                ⚠️ Coming Soon
+              </span>
             </button>
           ))}
         </div>

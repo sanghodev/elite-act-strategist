@@ -9,6 +9,7 @@ import { StudyPlanSelector } from './StudyPlanSelector';
 import { StudyPlanDashboard } from './StudyPlanDashboard';
 import { QuickReviewMode } from './QuickReviewMode';
 import { StudyPlan, getDailyMixForPlan } from '../services/studyPlanService';
+import { CacheStatsDashboard } from './CacheStatsDashboard';
 
 const DAILY_GOAL = 10;
 
@@ -331,6 +332,11 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
                         </span>
                         <span className="text-[9px] font-mono font-bold text-act-green uppercase tracking-widest">{mastered.length} / {ACT_ELITE_VOCAB.length} Secured</span>
                     </div>
+
+                    {/* Cache Statistics Dashboard */}
+                    {user?.id && (
+                        <CacheStatsDashboard userId={user.id} />
+                    )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                         {filteredWords.map(word => {

@@ -495,6 +495,67 @@ export const analyzeProblem = async (
     - Logic Explanation: S_next begins with "It is this community involvement...", requiring S_prev to establish "community involvement" as the antecedent. Choice B describes accessibility and location within the community, creating a functional bridge. Choice A introduces abstract themes ("stories", "cultural past") which disconnects the logical reference in S_next and prematurely touches on "messages" introduced later in S4.
     
     **KEY TAKEAWAY**: Always check S_next for reference words (This, It, These, Such). The correct answer MUST provide the antecedent.
+    
+    ═══════════════════════════════════════════════════════════════
+    **FEW-SHOT EXAMPLE 2: SEMICOLON vs COMMA (CRITICAL)**
+    ═══════════════════════════════════════════════════════════════
+    
+    [Problem Context - Question 17]: 
+    Passage: "Her art is thus a tribute to her family's past as well as to her cultural heritage, which she believes her art embodies the spirit of Los Angeles."
+    
+    [Underlined Portion]: "heritage, which she believes her art embodies"
+    
+    [Choices]:
+    A. NO CHANGE (heritage, which she believes her art embodies)
+    B. heritage;
+    C. heritage,
+    D. heritage, but
+    
+    [WRONG Analysis - DO NOT DO THIS]:
+    ❌ "This is a 'which' clause question about restrictive vs non-restrictive clauses. Since 'which' introduces extra information, we need commas..."
+    ❌ "Choice B is wrong because it removes the 'which' clause..."
+    ❌ "The clause 'which she believes her art embodies' provides additional information about heritage..."
+    
+    **WHY THIS IS WRONG**: The AI is focusing on 'which' and commas, but MISSING the fundamental issue.
+    
+    [CORRECT Analysis - DO THIS]:
+    ✅ **Step 1: CLASSIFY** - This is a Grammar/Punctuation question (connecting clauses)
+    ✅ **Step 2: IDENTIFY THE REAL STRUCTURE** - Look at what comes AFTER the underlined portion:
+       - After "heritage, which she believes her art embodies" comes: "the spirit of Los Angeles"
+       - CRITICAL REALIZATION: "she believes her art embodies the spirit of Los Angeles" is a COMPLETE SENTENCE
+       - Before: "Her art is thus a tribute to her family's past as well as to her cultural heritage" is ALSO a COMPLETE SENTENCE
+    
+    ✅ **Step 3: APPLY INDEPENDENT CLAUSE RULE**
+       - Two independent clauses (complete sentences) CANNOT be joined with just a comma
+       - They need: (1) Period, (2) Semicolon, or (3) Comma + Coordinating Conjunction (FANBOYS)
+       - The current version has a comma splice error
+    
+    ✅ **Step 4: EVALUATE CHOICES**
+       - A. NO CHANGE → Comma splice (wrong)
+       - B. heritage; → Semicolon correctly joins two independent clauses ✓
+       - C. heritage, → Still comma splice (wrong)
+       - D. heritage, but → "but" doesn't make logical sense (no contrast)
+    
+    ✅ **Step 5: VERIFY**
+       - After fix: "...her cultural heritage; she believes her art embodies the spirit of Los Angeles."
+       - Two independent clauses joined by semicolon ✓
+       - Grammatically correct ✓
+       - Meaning preserved ✓
+    
+    **Correct Answer: B**
+    
+    **Core Rule**: When you see two complete sentences (independent clauses), you MUST use:
+    - Period (.)
+    - Semicolon (;)
+    - Comma + FANBOYS (for, and, nor, but, or, yet, so)
+    
+    **NEVER** join two independent clauses with just a comma (comma splice error).
+    
+    **CRITICAL MISTAKE TO AVOID**: 
+    Don't get distracted by "which" or other words in the underlined portion. 
+    FIRST check: Are there two independent clauses? If YES, punctuation must be strong (semicolon or period).
+    
+    **KEY TAKEAWAY**: Before analyzing 'which' clauses or commas, ALWAYS check if you have two independent clauses. If yes, you need a semicolon or period, NOT a comma.
     ` : ''}
     
     ═══════════════════════════════════════════════════════════════

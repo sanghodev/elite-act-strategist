@@ -14,6 +14,7 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({ onAnalysisComplete, 
   const [userAnswer, setUserAnswer] = useState('');
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [errorContext, setErrorContext] = useState('');
+  const [questionNumber, setQuestionNumber] = useState(''); // 문제 번호
   const [images, setImages] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +51,8 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({ onAnalysisComplete, 
         errorContext,
         images,
         section,
-        history
+        history,
+        questionNumber || undefined // 문제 번호 전달
       );
       onAnalysisComplete(result, userAnswer, correctAnswer);
     } catch (error) {
@@ -157,6 +159,18 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({ onAnalysisComplete, 
                   className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-sm focus:border-act-green outline-none"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Question Number (If Multiple in Image)</label>
+              <input
+                type="text"
+                value={questionNumber}
+                onChange={(e) => setQuestionNumber(e.target.value)}
+                placeholder="e.g., 17, 23, 45..."
+                className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-sm focus:border-act-accent outline-none"
+              />
+              <p className="text-[9px] text-gray-600 italic">이미지에 여러 문제가 있으면 분석할 문제 번호를 입력하세요</p>
             </div>
 
             <div className="space-y-2">

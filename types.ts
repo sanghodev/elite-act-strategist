@@ -106,6 +106,12 @@ export interface AnalysisData {
     executionRule: string;
     correctAnswerContent?: string;
   };
+  aiSolution?: {
+    derivedAnswer: string; // AI's answer from solving the problem
+    solvingProcess: string; // Step-by-step how AI solved it
+    reasoning: string; // Why this answer is correct
+    confidence: 'High' | 'Medium' | 'Low'; // AI's confidence in its answer
+  };
 }
 
 export interface DrillProblem {

@@ -107,22 +107,68 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
                 </div>
 
                 {/* Answer Display */}
-                {(userAnswer || correctAnswer) && (
+                {(userAnswer || correctAnswer || data.aiSolution) && (
                   <div className="space-y-3 mb-6">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className={`grid ${data.aiSolution ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
                       <div className={`p-4 rounded-xl border-2 ${userAnswer ? 'bg-act-red/10 border-act-red/30' : 'bg-white/5 border-white/10'}`}>
                         <span className="text-[9px] font-mono text-gray-500 uppercase block mb-2">Your Answer</span>
                         <p className={`text-2xl font-black ${userAnswer ? 'text-act-red' : 'text-gray-600'}`}>
                           {userAnswer || 'N/A'}
                         </p>
                       </div>
+
+                      {data.aiSolution && (
+                        <div className="p-4 rounded-xl border-2 bg-act-accent/10 border-act-accent/30">
+                          <span className="text-[9px] font-mono text-gray-500 uppercase block mb-2">AI's Answer</span>
+                          <p className="text-2xl font-black text-act-accent">
+                            {data.aiSolution.derivedAnswer}
+                          </p>
+                        </div>
+                      )}
+
                       <div className={`p-4 rounded-xl border-2 ${correctAnswer ? 'bg-act-green/10 border-act-green/30' : 'bg-white/5 border-white/10'}`}>
-                        <span className="text-[9px] font-mono text-gray-500 uppercase block mb-2">Correct Answer</span>
+                        <span className="text-[9px] font-mono text-gray-500 uppercase block mb-2">
+                          {data.aiSolution ? 'Claimed Correct' : 'Correct Answer'}
+                        </span>
                         <p className={`text-2xl font-black ${correctAnswer ? 'text-act-green' : 'text-gray-600'}`}>
                           {correctAnswer || 'N/A'}
                         </p>
                       </div>
                     </div>
+
+                    {/* AI Solution Display */}
+                    {data.aiSolution && (
+                      <div className="p-6 bg-act-accent/5 border-2 border-act-accent/30 rounded-2xl space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <BrainCircuit size={20} className="text-act-accent" />
+                            <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-act-accent">AI's Independent Solution</h4>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-mono font-bold uppercase ${data.aiSolution.confidence === 'High' ? 'bg-act-green/20 text-act-green' :
+                            data.aiSolution.confidence === 'Medium' ? 'bg-yellow-500/20 text-yellow-500' :
+                              'bg-act-red/20 text-act-red'
+                            }`}>
+                            {data.aiSolution.confidence} Confidence
+                          </span>
+                        </div>
+
+                        <div className="p-4 bg-white/5 rounded-xl">
+                          <span className="text-[9px] font-mono text-gray-500 uppercase block mb-2">AI's Derived Answer</span>
+                          <p className="text-3xl font-black text-act-accent">{data.aiSolution.derivedAnswer}</p>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <span className="text-[9px] font-mono text-gray-500 uppercase block mb-2">Solving Process</span>
+                            <p className="text-sm text-gray-300 leading-relaxed">{data.aiSolution.solvingProcess}</p>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-mono text-gray-500 uppercase block mb-2">Reasoning</span>
+                            <p className="text-sm text-gray-300 leading-relaxed italic">"{data.aiSolution.reasoning}"</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* AI가 추출한 정답 내용 표시 */}
                     {data.tactical?.correctAnswerContent && (

@@ -23,6 +23,11 @@ async function callGeminiWithFallback<T>(
       systemInstruction?: string;
       responseMimeType?: string;
       responseSchema?: any;
+      generationConfig?: {
+        temperature?: number;
+        topP?: number;
+        topK?: number;
+      };
     };
   }
 ): Promise<{ text: string; model: string }> {
@@ -34,7 +39,15 @@ async function callGeminiWithFallback<T>(
 
       const response = await ai.models.generateContent({
         model,
-        ...requestConfig
+        ...requestConfig,
+        config: {
+          ...requestConfig.config,
+          generationConfig: {
+            temperature: 0.0,  // ACT는 논리 문제 - 창의성 제거
+            topP: 0.95,
+            topK: 64,
+          }
+        } as any  // Type assertion: generationConfig is supported but not in type definition
       });
 
       if (!response.text) {
@@ -133,7 +146,8 @@ export const analyzeProblem = async (
   errorContext: string,
   base64Images: string[],
   section: Section,
-  history: any[]
+  history: any[],
+  questionNumber?: string // 문제 번호 (선택적)
 ): Promise<AnalysisData> => {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
@@ -167,6 +181,7 @@ export const analyzeProblem = async (
     - Is there an answer key or explanation visible?
     - Are there any student markings (circles, checks, highlights)?
     - What question number is this?
+    ${questionNumber ? `\n    **CRITICAL**: User wants to analyze question number ${questionNumber} ONLY.\n    - If you see multiple questions, focus ONLY on question ${questionNumber}\n    - Ignore all other question numbers\n    - Extract information ONLY for question ${questionNumber}` : ''}
     
     ═══════════════════════════════════════════════════════════════
     STEP 2: EXTRACT THE CORRECT ANSWER (MOST IMPORTANT!)
@@ -207,22 +222,37 @@ export const analyzeProblem = async (
     A. **LOCATE QUESTION NUMBER**:
        - Look for numbers in brackets like [23] or (23) in the passage
        - Or question numbers at the bottom like "23. A B C D"
+       ${questionNumber ? `\n       - **CRITICAL**: User specified question number ${questionNumber}. ONLY analyze this question, ignore all others!` : ''}
     
     B. **IDENTIFY UNDERLINED PORTION**:
        - Find the text that corresponds to that question number
        - It may be underlined, in brackets, or numbered
        - Extract the EXACT text being questioned
        - Example: If you see "The cat [was sleeping] peacefully", extract "was sleeping"
+       ${questionNumber ? `\n       - Focus ONLY on question ${questionNumber}'s underlined portion` : ''}
     
     C. **EXTRACT ALL ANSWER CHOICES**:
        - Usually A, B, C, D (odd questions) or F, G, H, J (even questions)
        - First choice is often "NO CHANGE"
        - Get complete text: "A. NO CHANGE", "B. is sleeping", etc.
     
-    D. **VERIFY CORRECT ANSWER**:
+    D. **VERIFY CORRECT ANSWER AND EXTRACT ITS CONTENT**:
        - Cross-reference with answer key
        - If answer key says "23. C", then choice C is correct
-       - Extract the FULL TEXT of choice C for the 'correctAnswerContent' field
+       - **CRITICAL**: Extract the FULL TEXT of choice C (NOT choice A, NOT choice B)
+       - **VALIDATION**: Double-check that you're extracting the content of the IDENTIFIED correct answer
+       
+       **Example Process**:
+       1. Answer key shows: "17. B" → Correct answer LETTER is B
+       2. Look at the answer choices:
+          - A. NO CHANGE
+          - B. heritage, which she believes her art embodies
+          - C. heritage which she believes her art embodies
+          - D. heritage; which she believes her art embodies
+       3. Extract content of choice B (because answer key said B):
+          - correctAnswerContent = "heritage, which she believes her art embodies"
+       4. **DO NOT extract content of A just because it's first!**
+       5. **DO NOT extract "NO CHANGE" unless the answer key specifically says A is correct!**
     ` : `
     ═══════════════════════════════════════════════════════════════
     STEP 3: GENERAL SECTION EXTRACTION
@@ -260,6 +290,17 @@ export const analyzeProblem = async (
     🎯 For 'underlinedSnippet': Extract EXACT tested text
     🔍 For 'correctAnswerContent': Extract FULL TEXT of correct choice
     
+    ⚠️ **CRITICAL FOR correctAnswerContent**:
+    - If correct answer is "B", extract content of choice B
+    - If correct answer is "C", extract content of choice C
+    - DO NOT always extract "A. NO CHANGE" by default!
+    - DO NOT extract the first choice unless it's the correct answer!
+    - VALIDATION: The answer letter and answer content MUST match!
+    
+    **Common Mistake to Avoid**:
+    ❌ WRONG: Correct answer = "B", but extracting "A. NO CHANGE"
+    ✅ RIGHT: Correct answer = "B", extracting content of choice B
+    
     ` : ''}
     
     [INTEL PACKAGE]
@@ -269,6 +310,166 @@ export const analyzeProblem = async (
     - Error Context: "${errorContext}"
     - Historical Pattern Count: ${patternFrequency} similar errors
     ${base64Images.length > 0 ? '\n    NOTE: Prioritize information extracted from the images over the text fields above.' : ''}
+    
+    ═══════════════════════════════════════════════════════════════
+    [🤖 AI PROBLEM SOLVING - INDEPENDENT ANALYSIS]
+    ═══════════════════════════════════════════════════════════════
+    
+    **CRITICAL NEW REQUIREMENT**: You must SOLVE the problem yourself, not just analyze the student's mistake.
+    
+    **Your Task**:
+    1. **Read and understand the problem** from the image
+    2. **Solve it independently** using your ACT expertise
+    3. **Derive the correct answer** through logical reasoning
+    4. **Explain your solving process** step-by-step
+    5. **Compare your answer** with what the student provided
+    
+    **Why This Matters**:
+    - Student may not know the correct answer
+    - Student may have entered wrong "correct answer"
+    - You need to be the AUTHORITY on what's correct
+    - Your solution validates the analysis
+    
+    **AI Solution Requirements** (populate aiSolution field):
+    
+    1. **derivedAnswer**: Your answer after solving the problem
+       - Format: Just the letter (e.g., "B" or "C")
+       - This is YOUR answer from solving, not from answer key
+       - If answer key exists, compare and note any discrepancy
+    
+    2. **solvingProcess**: Step-by-step how you solved it
+       - Format: "Step 1: [action]. Step 2: [action]. Step 3: [conclusion]"
+       - Be specific and logical
+       - Show your reasoning clearly
+       - Example: "Step 1: Identified that 'which' introduces a non-restrictive clause. Step 2: Non-restrictive clauses require commas before and after. Step 3: Only choice B has both commas, making it correct."
+    
+    3. **reasoning**: Why your answer is correct
+       - Explain the underlying ACT principle
+       - Reference specific rules or patterns
+       - Make it educational
+       - Example: "Choice B is correct because non-restrictive clauses (extra information) must be set off with commas. The phrase 'which she believes her art embodies' is extra information about heritage, not essential to identify it, so it needs commas."
+    
+    4. **confidence**: Your confidence level
+       - "High": 95%+ certain, clear application of rules
+       - "Medium": 70-95% certain, some ambiguity
+       - "Low": <70% certain, unusual or tricky case
+    
+    **Example AI Solution**:
+    {
+      "derivedAnswer": "B",
+      "solvingProcess": "Step 1: Identified the clause 'which she believes her art embodies' as non-restrictive (extra info). Step 2: Checked punctuation rules - non-restrictive clauses need commas. Step 3: Evaluated all choices - only B has proper comma placement.",
+      "reasoning": "The clause provides additional information about heritage but isn't essential to identify what heritage means. ACT rule: non-restrictive clauses (starting with 'which') require commas before and after. Choice A lacks the first comma, C lacks both commas, D incorrectly uses semicolon.",
+      "confidence": "High"
+    }
+    
+    **CRITICAL**:
+    - Solve the problem FIRST, before analyzing student's mistake
+    - Your derivedAnswer becomes the TRUE correct answer
+    - If it differs from student's "correct answer" field, YOUR answer is right
+    - Use your solution to inform the analysis
+    
+    ${section === Section.English ? `
+    ═══════════════════════════════════════════════════════════════
+    [📚 ACT ENGLISH EXPERT RULES - PERFECT SCORE SYSTEM]
+    ═══════════════════════════════════════════════════════════════
+    
+    **ROLE**: You are an ACT English Test Designer and Logic Analyst.
+    **MINDSET**: "Ruthless Editor" - Function over Flow, Logic over Beauty
+    
+    **PRIME DIRECTIVE**:
+    - Ignore "flow" and "poetic beauty"
+    - Focus on mechanical function in specific location
+    - Reject subjectivity - use logical cohesion and structural necessity
+    
+    **30-RULE KNOWLEDGE BASE** (Apply these when solving):
+    
+    **I. CORE MINDSET**
+    1. ACT is an editing test - choose efficiency, not style
+    2. Meaning > Grammar - logic and structure decide when grammar is equal
+    3. "Most Relevant" = "Does this sentence do the job this spot requires?"
+    
+    **II. PARAGRAPH STRUCTURE**
+    4. Paragraph Unity - every sentence supports one central purpose
+    5. Sentence Placement - function must match position (Introduce/Explain/Transition/Conclude)
+    6. Transition Rule - transitions smooth the path, don't change destination
+    
+    **III. REFERENCE & PRONOUNS (CRITICAL)**
+    7. Rule of Reference - pronouns refer to closest logical noun or immediately preceding idea
+    8. "This + Noun" is clearer than bare "This"
+    9. Topic Lock - don't change topics before sentences with strong reference words
+    
+    **IV. ADD/DELETE/REVISE TRAPS**
+    10. Delete If - sentence repeats info, adds unnecessary background, or does no work
+    11. Add Only If - serves clear purpose (clarify/support/fit)
+    12. "All Are True" Trap - truth is irrelevant, function decides
+    
+    **V. LOGICAL FLOW & COHESION**
+    13. Causality - effects cannot appear before causes
+    14. General to Specific - examples come after ideas they support
+    15. New Information Placement - don't introduce major new ideas mid-paragraph
+    16. "As well as" Rule - don't prematurely summarize info coming in next sentence
+    
+    **VI. STYLE & TONE**
+    17. Tone Consistency - match the passage (informative/narrative)
+    18. Concrete > Abstract - prefer specific, observable details
+    19. No Redundancy - if two choices mean same thing, pick shorter
+    
+    **VII. CONCISION & WORD CHOICE**
+    20. Cut Words - "in order to" → "to", "due to the fact that" → "because"
+    21. Precision - longer ≠ clearer
+    
+    **VIII. COMMON QUESTION TYPES**
+    22. Intro - broad but accurate, match passage purpose
+    23. Conclusion - echo main idea, no new facts
+    24. Title - reflects overall purpose, not a detail
+    
+    **IX. STRATEGIC RULES**
+    25. Context is King - read whole sentence and surrounding sentences
+    26. Logic > Ears - what "sounds right" is unreliable
+    27. Neutral > Dramatic - ACT rarely chooses extreme language
+    28. One Right Answer - if two seem right, both are wrong
+    
+    **X. FINAL PRINCIPLES**
+    29. Predictability - patterns repeat, recognize structure
+    30. Control - correct answer is what editor approves without emotion
+    
+    **EXECUTION ALGORITHM** (Use this for solvingProcess):
+    
+    Step 1: Analyze S_prev and S_next (sentences before and after target)
+    Step 2: Check the "Bridge" - does option logically connect them?
+       - Check Reference: If S_next has "This [noun]", does option provide antecedent?
+       - Check Spoiler: Does S_next introduce new concept? Ensure option doesn't mention it prematurely
+    Step 3: Apply "Concrete Test" - prefer physical/administrative details over abstract themes
+    Step 4: Select & Verify - choose answer satisfying the rulebook
+    
+    **OUTPUT REQUIREMENTS FOR ENGLISH**:
+    - In solvingProcess: Cite which Rule # you applied (e.g., "Applied Rule #7: Reference")
+    - In reasoning: Explain the structural/logical reason, not subjective preference
+    - In derivedAnswer: The letter that passes the algorithm
+    
+    **EXAMPLE ENGLISH SOLUTION**:
+    solvingProcess: "Step 1: Analyzed S_prev (introduces heritage concept) and S_next (uses 'This tradition'). Step 2: Applied Rule #7 (Reference) - S_next needs clear antecedent for 'This tradition'. Step 3: Only choice B provides concrete tradition reference. Step 4: Verified B connects logically."
+    reasoning: "Rule #7 (Reference) and Rule #18 (Concrete > Abstract). The next sentence starts with 'This tradition', requiring a clear antecedent. Choice B provides the specific tradition (heritage art), while A is too abstract. The reference must be concrete and immediate."
+    
+    **FEW-SHOT EXAMPLE** (Learn from this):
+    
+    [Problem Context]: Sentence placement question. S_next starts with "It is this community involvement..."
+    
+    [Choices]:
+    A. The museum shares stories that connect visitors to the cultural past.
+    B. The museum is located in the heart of downtown, accessible to all residents.
+    C. NO CHANGE
+    D. DELETE the underlined portion.
+    
+    [Correct Analysis]:
+    - Correct Answer: B
+    - Core Rule Applied: Rule #7 (Reference) & Rule #15 (New Information Placement)
+    - Logic Explanation: S_next begins with "It is this community involvement...", requiring S_prev to establish "community involvement" as the antecedent. Choice B describes accessibility and location within the community, creating a functional bridge. Choice A introduces abstract themes ("stories", "cultural past") which disconnects the logical reference in S_next and prematurely touches on "messages" introduced later in S4.
+    
+    **KEY TAKEAWAY**: Always check S_next for reference words (This, It, These, Such). The correct answer MUST provide the antecedent.
+    ` : ''}
+    
+    ═══════════════════════════════════════════════════════════════
     
     [ANALYSIS REQUIREMENTS - 36-POINT STANDARD]
     
@@ -302,8 +503,28 @@ export const analyzeProblem = async (
          Example: "When seeing transition words between clauses, immediately check if both sides 
          are independent sentences because ACT traps 34-scorers with comma splices"
        - **Correct Answer Content**: Extract the FULL TEXT of the correct answer choice from the image
-         (e.g., if correct answer is "A", provide the complete text of choice A)
-         This helps students understand WHY this answer is correct.
+          
+          **CRITICAL VALIDATION PROCESS**:
+          Step 1: Identify the correct answer LETTER (e.g., "B" from answer key)
+          Step 2: Find that specific choice in the answer options
+          Step 3: Extract the COMPLETE TEXT of that choice (NOT choice A, NOT "NO CHANGE" by default)
+          Step 4: CROSS-CHECK: Does the letter match the content you extracted?
+          
+          **Example**:
+          - Answer key shows: "17. B" ← Correct answer is B
+          - Answer choices:
+            A. NO CHANGE
+            B. heritage, which she believes her art embodies ← Extract THIS (because answer is B)
+            C. heritage which she believes her art embodies
+            D. heritage; which she believes her art embodies
+          - correctAnswerContent = "heritage, which she believes her art embodies"
+          
+          **DO NOT**:
+          ❌ Extract "A. NO CHANGE" when answer is B, C, or D
+          ❌ Always extract the first choice by default
+          ❌ Confuse the answer LETTER with answer CONTENT
+          
+          This helps students understand WHY this specific answer is correct.
     
     
     [🎓 EXPERT TEACHER MODE - ACT MASTERY RULES]
@@ -560,9 +781,19 @@ export const analyzeProblem = async (
           correctAnswerContent: { type: Type.STRING }
         },
         required: ["fatalMistake", "designersIntent", "executionRule"]
+      },
+      aiSolution: {
+        type: Type.OBJECT,
+        properties: {
+          derivedAnswer: { type: Type.STRING },
+          solvingProcess: { type: Type.STRING },
+          reasoning: { type: Type.STRING },
+          confidence: { type: Type.STRING, enum: ["High", "Medium", "Low"] }
+        },
+        required: ["derivedAnswer", "solvingProcess", "reasoning", "confidence"]
       }
     },
-    required: ["surface", "diagnosis", "pattern", "impact", "tactical"]
+    required: ["surface", "diagnosis", "pattern", "impact", "tactical", "aiSolution"]
   };
 
   try {

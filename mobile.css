@@ -132,6 +132,7 @@ a {
 
 /* Landscape mode on mobile (height constrained) */
 @media (max-height: 500px) and (orientation: landscape) {
+
   /* Reduce vertical padding */
   .py-10 {
     padding-top: 1.5rem !important;
@@ -159,6 +160,7 @@ a {
 /* High DPI displays (Retina, etc.) */
 @media (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
+
   /* Sharper borders on high-DPI screens */
   .glass {
     border-width: 0.5px;
@@ -245,6 +247,7 @@ a {
 /* ===== MOBILE NAVIGATION OPTIMIZATIONS ===== */
 
 @media (max-width: 768px) {
+
   /* Bottom navigation improvements */
   nav {
     /* Ensure it's always visible */
@@ -272,6 +275,7 @@ a {
 /* ===== FORM OPTIMIZATIONS ===== */
 
 @media (max-width: 768px) {
+
   /* Better textarea experience */
   textarea {
     min-height: 120px;
@@ -342,4 +346,43 @@ button {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
+}
+
+/* ===== 3D TRANSFORM UTILITIES FOR SWIPEABLE CARDS ===== */
+
+/* Perspective container */
+.perspective-1000 {
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* 3D transform style */
+.transform-style-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+/* Backface hidden (for card flip) */
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Y-axis rotation for card flip */
+.rotate-y-180 {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+
+/* Smooth transitions for card animations */
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* GPU-accelerated transforms */
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
 }

@@ -5,6 +5,10 @@ import { generateVocabDrill } from '../services/geminiService';
 import { DrillProblem, VocabStats, User, VocabData } from '../types';
 import { ResponsiveContainer, AreaChart, Area, XAxis, CartesianGrid, Tooltip, Cell, PieChart, Pie } from 'recharts';
 import { ACT_ELITE_VOCAB } from '../data/vocabList';
+import { StudyPlanSelector } from './StudyPlanSelector';
+import { StudyPlanDashboard } from './StudyPlanDashboard';
+import { QuickReviewMode } from './QuickReviewMode';
+import { StudyPlan, getDailyMixForPlan } from '../services/studyPlanService';
 
 const DAILY_GOAL = 10;
 
@@ -21,9 +25,11 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
     const [latencyHistory, setLatencyHistory] = useState<number[]>([]);
     const [accuracyHistory, setAccuracyHistory] = useState<number[]>([]);
 
-    const [view, setView] = useState<'lexicon' | 'drill' | 'report'>('lexicon');
+    const [view, setView] = useState<'lexicon' | 'drill' | 'report' | 'quick-review' | 'plan-setup'>('lexicon');
     const [filterMode, setFilterMode] = useState<'daily' | 'all' | 'targets' | 'mastered'>('daily');
     const [searchTerm, setSearchTerm] = useState('');
+    const [studyPlan, setStudyPlan] = useState<StudyPlan | null>(user?.studyPlan || null);
+    const [showPlanSelector, setShowPlanSelector] = useState(!user?.studyPlan);
 
     const [currentWord, setCurrentWord] = useState<string | null>(null);
     const [drill, setDrill] = useState<DrillProblem | null>(null);
@@ -89,14 +95,15 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
 
     const generateNewDailyMission = (currentMastered: string[]) => {
         const today = new Date().toISOString().split('T')[0];
+        const dailyGoal = studyPlan?.daily_goal || DAILY_GOAL; // Use study plan goal or fallback to 10
         const unmastered = ACT_ELITE_VOCAB.filter(w => !currentMastered.includes(w));
-        const candidates = unmastered.length < 10 ? ACT_ELITE_VOCAB : unmastered;
+        const candidates = unmastered.length < dailyGoal ? ACT_ELITE_VOCAB : unmastered;
 
         const newMission = candidates
             .map(value => ({ value, sort: Math.random() }))
             .sort((a, b) => a.sort - b.sort)
             .map(({ value }) => value)
-            .slice(0, 10);
+            .slice(0, dailyGoal); // Use dynamic daily goal
 
         setDailyMission(newMission);
         setDailyProgress(0);
@@ -281,6 +288,9 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
                     <button onClick={() => setView('lexicon')} className={`px-6 py-3 rounded-xl text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-2 ${view === 'lexicon' ? 'bg-act-accent text-white shadow-lg shadow-act-accent/20' : 'text-gray-500 hover:text-gray-300'}`}>
                         <Layout size={14} /> Lexicon
                     </button>
+                    <button onClick={() => setView('quick-review')} className={`px-6 py-3 rounded-xl text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-2 ${view === 'quick-review' ? 'bg-act-green text-black shadow-lg shadow-act-green/20' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <Zap size={14} /> Quick Review
+                    </button>
                     <button onClick={() => setView('report')} className={`px-6 py-3 rounded-xl text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-2 ${view === 'report' ? 'bg-act-accent text-white shadow-lg shadow-act-accent/20' : 'text-gray-500 hover:text-gray-300'}`}>
                         <BarChart3 size={14} /> Intel Report
                     </button>
@@ -316,10 +326,10 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
                             const isMastered = mastered.includes(word);
                             const isDaily = dailyMission.includes(word);
                             return (
-                                <button key={word} onClick={() => !isMastered && startDrill(word)} className={`p-4 rounded-xl border text-[10px] font-mono font-bold uppercase transition-all flex flex-col items-center gap-2 group relative overflow-hidden h-24 justify-center ${isMastered ? 'bg-act-green/5 border-act-green/10 text-act-green opacity-50 cursor-default' : isDaily ? 'glass border-act-accent shadow-[0_0_15px_rgba(46,125,255,0.15)] text-white scale-[1.02]' : 'glass border-white/5 text-gray-400 hover:border-act-accent hover:text-white hover:scale-105'}`}>
+                                <button key={word} onClick={() => startDrill(word)} className={`p-4 rounded-xl border text-[10px] font-mono font-bold uppercase transition-all flex flex-col items-center gap-2 group relative overflow-hidden h-24 justify-center ${isMastered ? 'bg-act-green/5 border-act-green/10 text-act-green hover:bg-act-green/10 hover:border-act-green/30 cursor-pointer' : isDaily ? 'glass border-act-accent shadow-[0_0_15px_rgba(46,125,255,0.15)] text-white scale-[1.02]' : 'glass border-white/5 text-gray-400 hover:border-act-accent hover:text-white hover:scale-105'}`}>
                                     {isMastered ? <CheckCircle2 size={14} /> : isDaily ? <Crosshair size={14} className="text-act-red animate-pulse" /> : <Zap size={14} className="group-hover:text-act-accent transition-colors" />}
                                     <span className="truncate w-full text-center px-1">{word}</span>
-                                    {!isMastered && <div className="absolute inset-0 bg-act-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                                    <div className="absolute inset-0 bg-act-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     {isDaily && !isMastered && <div className="absolute top-1 right-1 h-1.5 w-1.5 bg-act-red rounded-full animate-ping" />}
                                 </button>
                             );
@@ -446,6 +456,46 @@ export const VocabularyTrainer: React.FC<VocabularyTrainerProps> = ({ user, onUp
                             <div className="flex gap-4"><div className="px-4 py-2 glass rounded-xl text-[9px] font-mono font-bold text-gray-400 uppercase">Accuracy: Secured</div><div className="px-4 py-2 glass rounded-xl text-[9px] font-mono font-bold text-act-red uppercase">Speed: Critical</div></div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {view === 'quick-review' && (
+                <QuickReviewMode
+                    words={dailyMission}
+                    user={user}
+                    onComplete={(stats) => {
+                        console.log('Quick Review completed:', stats);
+                        setView('lexicon');
+                    }}
+                    onBack={() => setView('lexicon')}
+                />
+            )}
+
+            {showPlanSelector && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div className="max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                        <StudyPlanSelector
+                            onSelectPlan={(plan) => {
+                                setStudyPlan(plan);
+                                setShowPlanSelector(false);
+                                if (onUpdateUser) {
+                                    onUpdateUser({ studyPlan: plan });
+                                }
+                            }}
+                            currentPlan={studyPlan || undefined}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {studyPlan && !showPlanSelector && view === 'lexicon' && (
+                <div className="mt-8">
+                    <StudyPlanDashboard
+                        studyPlan={studyPlan}
+                        masteredWords={mastered.length}
+                        totalWords={ACT_ELITE_VOCAB.length}
+                        onChangePlan={() => setShowPlanSelector(true)}
+                    />
                 </div>
             )}
         </div>

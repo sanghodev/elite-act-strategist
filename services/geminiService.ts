@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisData, DrillProblem, Section, ErrorCategory, TACTICAL_MAP } from "../types";
+import { geminiRateLimiter } from "../utils/rateLimiter";
 
 // Gemini Model Fallback Configuration
 // Priority order: Latest experimental → Stable → Lightweight
@@ -36,6 +37,11 @@ async function callGeminiWithFallback<T>(
   for (const model of GEMINI_MODELS) {
     try {
       console.log(`[Gemini Fallback] Trying model: ${model}`);
+
+      // Wait if necessary to respect rate limits
+      await geminiRateLimiter.waitIfNeeded();
+      const stats = geminiRateLimiter.getStats();
+      console.log(`[Rate Limit] ${stats.used}/${stats.max} requests used (${stats.remaining} remaining)`);
 
       const response = await ai.models.generateContent({
         model,
@@ -173,14 +179,20 @@ export const analyzeProblem = async (
     The student has uploaded ${base64Images.length} image(s) of the problem.
     
     ═══════════════════════════════════════════════════════════════
-    STEP 1: DESCRIBE WHAT YOU SEE
+    STEP 1: DESCRIBE WHAT YOU SEE (VISUAL MARKER IDENTIFICATION)
     ═══════════════════════════════════════════════════════════════
-    Before analyzing, first mentally describe the image:
-    - Is this a passage with questions, or just a question?
-    - Can you see answer choices clearly?
-    - Is there an answer key or explanation visible?
-    - Are there any student markings (circles, checks, highlights)?
-    - What question number is this?
+    Before analyzing, identify ALL visual markers carefully:
+    
+    **A. Document Type**: Passage with questions? Just a question? Answer key visible?
+    
+    **B. Visual Markers (CRITICAL)**:
+    - **Check marks (✓)**: Usually indicate WRONG answers (student's mistakes)
+    - **Circles/Highlights**: Student's selected answer (may be wrong or right)
+    - **Answer key text**: Official correct answer (highest priority)
+    
+    **C. Priority Order**: Answer key text > Visual markers > Student markings
+    
+    **D. Question Number**: What question is this?
     ${questionNumber ? `\n    **CRITICAL**: User wants to analyze question number ${questionNumber} ONLY.\n    - If you see multiple questions, focus ONLY on question ${questionNumber}\n    - Ignore all other question numbers\n    - Extract information ONLY for question ${questionNumber}` : ''}
     
     ═══════════════════════════════════════════════════════════════
@@ -437,6 +449,9 @@ export const analyzeProblem = async (
     31. **The "Next Sentence" Vet**: You are FORBIDDEN from choosing an answer based solely on the previous sentence. You MUST verify that the chosen answer does not conflict with, repeat, or disconnect from the *following* sentence (S_next).
     32. **The "Boring" Preference**: If Choice A is "smart/philosophical" and Choice B is "boring/functional/administrative," and both are grammatically correct, Choice B is 90% likely to be the answer in 'Relevance' questions.
     33. **Visual/OCR Error Handling**: If the user provides an image, assume OCR might be imperfect. If a choice seems to have a typo (e.g., "thier" instead of "their"), treat it as a potential OCR error unless spelling is explicitly tested. Context is supreme.
+    34. **Appositive Punctuation (CRITICAL)**: When a noun renames another noun (appositive), use MATCHING punctuation on BOTH sides. Correct: "art, the mural," or "art—the mural—". Wrong: "art, the mural—" (mismatched). Test: Remove the appositive - sentence should still make sense.
+    35. **Reflexive Pronoun Redundancy**: When you see reflexive pronouns (myself, themselves, herself) after a noun, check if the pronoun is already implied by context. If the subject is already clear and the pronoun doesn't add new information, it's redundant. Example: "raised by her mother and grandmother, themselves in a community" → "themselves" is redundant because we already know who "in a community" refers to. DELETE it.
+    36. **Possessive Pronoun Agreement (Its vs Their)**: When choosing between possessive pronouns, identify the antecedent (what the pronoun refers to) and count: Is it ONE thing (singular) or MULTIPLE things (plural)? Singular → its, his, her. Plural → their. Common mistake: Using "their" when antecedent is singular. Example: "The mural... Its successes" (not "Their successes").
     
     **EXECUTION ALGORITHM** (MANDATORY CHAIN OF THOUGHT - Use this for solvingProcess):
     
@@ -556,6 +571,64 @@ export const analyzeProblem = async (
     FIRST check: Are there two independent clauses? If YES, punctuation must be strong (semicolon or period).
     
     **KEY TAKEAWAY**: Before analyzing 'which' clauses or commas, ALWAYS check if you have two independent clauses. If yes, you need a semicolon or period, NOT a comma.
+    
+    ═══════════════════════════════════════════════════════════════
+    **FEW-SHOT EXAMPLE 3: APPOSITIVE PUNCTUATION (CRITICAL)**
+    ═══════════════════════════════════════════════════════════════
+    
+    [Problem Context - Question 18]:
+    Passage: "Her chosen field of art, the mural, has long been a part of Mexican artistic culture"
+    
+    [Underlined Portion]: "art, the mural,"
+    
+    [Choices]:
+    F. NO CHANGE (art, the mural,)
+    G. art, the mural—
+    H. art the mural—
+    J. art the mural,
+    
+    [WRONG Analysis - DO NOT DO THIS]:
+    ❌ "The dash in G looks more dramatic and emphasizes 'the mural'..."
+    ❌ "J is simpler and cleaner without the opening comma..."
+    ❌ "H uses a dash which is more modern..."
+    
+    **WHY THIS IS WRONG**: Missing the fundamental appositive punctuation rule.
+    
+    [CORRECT Analysis - DO THIS]:
+    ✅ **Step 1: IDENTIFY APPOSITIVE**
+       - "the mural" renames/defines "art"
+       - This is an appositive (noun renaming another noun)
+       - Test: Remove it → "Her chosen field of art has long been..." ✓ (still works)
+    
+    ✅ **Step 2: APPLY APPOSITIVE RULE (Rule #34)**
+       - Appositives need MATCHING punctuation on BOTH sides
+       - Options: both commas, both dashes, or both parentheses
+       - NEVER mix different punctuation marks
+    
+    ✅ **Step 3: EVALUATE CHOICES**
+       - F: art, the mural, → Comma on both sides ✓ (MATCHING)
+       - G: art, the mural— → Comma + dash ✗ (MISMATCHED)
+       - H: art the mural— → No opening punctuation ✗ (ONE-SIDED)
+       - J: art the mural, → No opening punctuation ✗ (ONE-SIDED)
+    
+    ✅ **Step 4: VERIFY**
+       - F has matching commas on both sides ✓
+       - Sentence structure preserved ✓
+       - Grammatically correct ✓
+    
+    **Correct Answer: F**
+    
+    **Core Rule**: Appositives require MATCHING punctuation on BOTH sides:
+    - ✓ "art, the mural," (both commas)
+    - ✓ "art—the mural—" (both dashes)
+    - ✗ "art, the mural—" (mismatched)
+    - ✗ "art the mural," (one-sided)
+    
+    **CRITICAL MISTAKE TO AVOID**:
+    Don't choose answers based on "style" or "emphasis". 
+    FIRST check: Is this an appositive? If YES, punctuation must MATCH on both sides.
+    
+    **KEY TAKEAWAY**: When you see a noun that renames another noun, check punctuation on BOTH sides. They must match. Period.
     ` : ''}
     
     ═══════════════════════════════════════════════════════════════
@@ -1166,3 +1239,88 @@ export const generateVocabDrill = async (word: string): Promise<DrillProblem> =>
   console.log(`[Vocab] Used model: ${model}`);
   return JSON.parse(text);
 };
+
+/**
+ * Generate vocabulary drills for multiple words in a single API call
+ * Much more efficient than calling generateVocabDrill() for each word individually
+ * Reduces API usage from N calls to 1 call for N words
+ */
+export async function generateBatchVocabDrills(words: string[]): Promise<Record<string, DrillProblem>> {
+  const apiKey = localStorage.getItem('act_gemini_key');
+  if (!apiKey) throw new Error('No API key configured');
+
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `
+    Generate ACT-level vocabulary drill questions for the following ${words.length} words.
+    For EACH word, create a fill-in-the-blank sentence with 4 answer choices.
+    
+    Words: ${words.join(', ')}
+    
+    CRITICAL REQUIREMENTS:
+    1. Each sentence should be ACT-difficulty (34-36 level)
+    2. The blank should test NUANCED meaning, not just definition
+    3. Distractors should be NEAR-SYNONYMS that are genuinely tempting
+    4. Explanations should teach subtle distinctions
+    
+    Example format for ONE word:
+    
+    Word: "Mitigate"
+    Sentence: "The new policy was designed to _____ the economic impact of the recession."
+    Options: ["mitigate", "lessen", "eliminate", "alleviate"]
+    Correct: "mitigate"
+    Explanation: "Mitigate is the precise term for reducing severity in formal policy contexts. 'Lessen' is too casual. 'Eliminate' overstates what policies achieve. 'Alleviate' collocates with pain/suffering, not economic metrics."
+    
+    Generate drills for ALL ${words.length} words in the same format.
+  `;
+
+  const responseSchema = {
+    type: Type.OBJECT,
+    properties: {
+      drills: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            word: { type: Type.STRING },
+            type: { type: Type.STRING },
+            content: { type: Type.STRING },
+            options: { type: Type.ARRAY, items: { type: Type.STRING } },
+            correctAnswer: { type: Type.STRING },
+            explanation: { type: Type.STRING }
+          },
+          required: ["word", "type", "content", "options", "correctAnswer", "explanation"]
+        }
+      }
+    },
+    required: ["drills"]
+  };
+
+  const { text, model } = await callGeminiWithFallback(ai, {
+    contents: prompt,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseSchema: responseSchema
+    }
+  });
+
+  const parsed = JSON.parse(text);
+
+  // Convert array to Record<word, DrillProblem>
+  const drillsMap: Record<string, DrillProblem> = {};
+
+  for (const drill of parsed.drills) {
+    drillsMap[drill.word.toLowerCase()] = {
+      type: drill.type as any,
+      content: drill.content,
+      options: drill.options,
+      correctAnswer: drill.correctAnswer,
+      explanation: drill.explanation
+    };
+  }
+
+  console.log(`✅ Generated ${Object.keys(drillsMap).length} vocabulary drills in 1 API call (saved ${words.length - 1} calls!)`);
+
+  return drillsMap;
+}

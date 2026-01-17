@@ -70,6 +70,17 @@ export interface User {
   targetScore: number;
   preferences: UserPreferences;
   vocabData?: VocabData;
+  studyPlan?: {
+    period: 'intensive' | 'accelerated' | 'balanced' | 'relaxed';
+    start_date: string;
+    target_date: string;
+    daily_goal: number;
+    total_words: number;
+    custom: {
+      new_words_per_day: number;
+      review_words_per_day: number;
+    };
+  };
 }
 
 export interface MasteryMetrics {

@@ -346,54 +346,58 @@ export const generateDrills = async (analysis: Partial<AnalysisData> & { proacti
   const originalFault = analysis.tactical?.fatalMistake || "General Logic Failure";
 
   const prompt = `
-    ELITE DRILL GENERATION - ${section} / ${category} (Target: 34→36)
+    🎯 ELITE DRILL GENERATION - 35-36 POINT MASTERY (PERFECT SCORE TARGET)
     
-    [MISSION OBJECTIVE]
-    Generate 3 MASTER-LEVEL practice drills designed to eliminate the specific weakness:
-    "${originalFault}"
+    Student Target: 35-36 composite (English: 75/75 correct - ZERO mistakes)
+    Top 1% of test-takers. Generate drills HARDER than typical ACT questions.
     
-    [DRILL SPECIFICATIONS - 36-POINT STANDARD]
+    Original Weakness: "${originalFault}"
     
-    Create exactly 3 drills, one of each type:
+    DIFFICULTY MANDATE:
+    - 32-scorer: 0/3 correct (overwhelmed)
+    - 34-scorer: 0-1/3 correct (struggling)
+    - 35-scorer: 1-2/3 correct (challenged)
+    - 36-scorer: 2-3/3 correct (careful thought required)
     
-    1. **CLONED DRILL** (Pattern Recognition)
-       - Recreate the EXACT same trap/pattern from the original error
-       - Use different content but identical logical structure
-       - Test if student has internalized the correction
-       - Difficulty: 8/10 (34-36 level)
+    If drills feel "fair", they are TOO EASY. Goal: Train for ZERO mistakes.
     
-    2. **PRESSURE DRILL** (Time + Complexity)
-       - Same concept but with added complexity layers
-       - Designed to be solved in 30-45 seconds (ACT pace)
-       - Include 2-3 plausible distractors that would fool a 32-scorer
-       - Test if student can apply the rule under pressure
-       - Difficulty: 9/10 (35-36 level)
+    DRILL SPECIFICATIONS:
     
-    3. **EDGE CASE DRILL** (Exception Handling)
-       - Present an unusual variation or exception to the rule
-       - Test deep understanding, not just pattern matching
-       - Should challenge even students who "got" the original concept
-       - Include a distractor that applies the rule TOO rigidly
-       - Difficulty: 10/10 (36-level trap)
+    1. CLONED DRILL (Difficulty: 9/10)
+       - Recreate EXACT trap/pattern from original error
+       - Add ONE extra complexity layer
+       - Test PRECISE micro-distinction student missed
     
-    [CONTENT REQUIREMENTS]
-    - **ACT-STYLE FORMATTING**: Wrap the portion being tested in square brackets [like this]
-      Example: "The proliferation of misinformation, particularly via social media platforms, [has engendered] a climate of skepticism."
-      The bracketed portion will be displayed with an underline in the UI, just like real ACT questions
-    - For English/Grammar drills, bracket the specific phrase, word, or punctuation being tested
-    - For Reading/Science drills, bracket key terms or phrases that are central to the question
-    - Use college-level vocabulary and complex sentence structures
-    - Distractors must be TEMPTING - not obviously wrong
-    - Each wrong answer should represent a specific misconception
-    - Explanations must teach the SUBTLE distinction (what 36-scorers know)
-    - Format explanations as: "Why correct: [reason]. Why others fail: [specific traps]"
+    2. PRESSURE DRILL (Difficulty: 10/10)
+       - Same concept, MAXIMUM complexity
+       - Multiple potential errors in one question
+       - 3-4 distractors that fool 35-scorers
+       - Solve in 30-40 seconds (real ACT pace)
     
-    [CRITICAL STANDARDS]
-    - These drills should feel HARDER than typical ACT questions
-    - A 30-scorer should get 0-1 correct
-    - A 34-scorer should get 1-2 correct
-    - A 36-scorer should get 3/3 correct with confidence
-    - Each drill must directly address the original fault pattern
+    3. EDGE CASE DRILL (Difficulty: 10+/10)
+       - RAREST exception/variation to the rule
+       - Test deep understanding, not memorization
+       - Distractor that applies rule TOO rigidly
+       - Appears 1-2 times per test
+    
+    ACT-AUTHENTIC FORMATTING (CRITICAL):
+    - Use [brackets] for tested portion
+    - Example: "The impact, [which has been studied,] remains controversial."
+    - Advanced vocabulary, multi-clause sentences
+    - Distractors = SUBTLE misconceptions (not obvious)
+    
+    For English drills:
+    - passage: Full sentence with [underlined portion]
+    - underlinedText: Text inside brackets only
+    - options: ["NO CHANGE", option2, option3, option4]
+    - correctAnswer: One of the options
+    - hasNoChange: true
+    - answerLabels: ["A", "B", "C", "D"]
+    
+    Explanations (REQUIRED):
+    - explanation: Full English (focus on micro-distinctions)
+    - explanationSummary: One-line core concept (max 15 words)
+    - explanationKorean: Detailed Korean translation
     
     [ACT-AUTHENTIC FORMATTING - CRITICAL]
     **For English/Grammar drills, you MUST follow this exact format:**

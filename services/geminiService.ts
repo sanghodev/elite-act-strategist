@@ -433,23 +433,51 @@ export const analyzeProblem = async (
     29. Predictability - patterns repeat, recognize structure
     30. Control - correct answer is what editor approves without emotion
     
-    **EXECUTION ALGORITHM** (Use this for solvingProcess):
+    **XI. CRITICAL OVERRIDES (ANTI-HALLUCINATION PROTOCOLS)**
+    31. **The "Next Sentence" Vet**: You are FORBIDDEN from choosing an answer based solely on the previous sentence. You MUST verify that the chosen answer does not conflict with, repeat, or disconnect from the *following* sentence (S_next).
+    32. **The "Boring" Preference**: If Choice A is "smart/philosophical" and Choice B is "boring/functional/administrative," and both are grammatically correct, Choice B is 90% likely to be the answer in 'Relevance' questions.
+    33. **Visual/OCR Error Handling**: If the user provides an image, assume OCR might be imperfect. If a choice seems to have a typo (e.g., "thier" instead of "their"), treat it as a potential OCR error unless spelling is explicitly tested. Context is supreme.
     
-    Step 1: Analyze S_prev and S_next (sentences before and after target)
-    Step 2: Check the "Bridge" - does option logically connect them?
-       - Check Reference: If S_next has "This [noun]", does option provide antecedent?
-       - Check Spoiler: Does S_next introduce new concept? Ensure option doesn't mention it prematurely
-    Step 3: Apply "Concrete Test" - prefer physical/administrative details over abstract themes
-    Step 4: Select & Verify - choose answer satisfying the rulebook
+    **EXECUTION ALGORITHM** (MANDATORY CHAIN OF THOUGHT - Use this for solvingProcess):
+    
+    **Before outputting the final answer, you must perform this internal analysis process:**
+    
+    1. **CLASSIFY THE QUESTION TYPE:**
+       - Is it **Grammar/Usage**? (Commas, subject-verb, pronouns) → Apply Rules 20, 26.
+       - Is it **Rhetorical Skill**? (Add/Delete, Intro/Conclusion, Placement) → Apply Rules 1, 4, 5, 11.
+       - Is it **Cohesion/Logic**? (Transitions, "Most Relevant") → Apply Rules 6, 13, 14.
+    
+    2. **LOCATE THE "ANCHORS":**
+       - Identify **S_prev** (Sentence Before) and **S_next** (Sentence After).
+       - *CRITICAL:* If S_next contains a pronoun (this, that, these, those, such), the Answer MUST contain the specific antecedent (Rule 7, 9).
+    
+    3. **THE "DELETE" CHECK:**
+       - If "OMIT/DELETE" is an option, ask: "Is this info absolutely necessary for the paragraph's core argument?" If no, DELETE is the default winner (Rule 10, 19).
+    
+    4. **THE "SPOILER" CHECK:**
+       - Does the chosen answer explain something that S_next is about to introduce? If yes, it is REDUNDANT. Reject it (Rule 16).
+    
+    5. **FINAL VERIFICATION:**
+       - Does the answer violate the "Tone Consistency" (Rule 17)?
+       - Is it the shortest grammatically correct option (Rule 19)?
+       - Apply Rule 31: Does it connect properly to S_next?
+       - Apply Rule 32: Is the "boring/functional" option being overlooked?
+    
+    **STRUCTURED OUTPUT FORMAT:**
+    In your solvingProcess, use this format:
+    - **Question Type:** [Grammar / Rhetorical / Logic]
+    - **Context Analysis:** S_prev: [summary], S_next: [summary or key reference words]
+    - **Option Analysis:** Evaluate each choice against the rules
+    - **Final Decision:** Correct answer with primary rule cited
     
     **OUTPUT REQUIREMENTS FOR ENGLISH**:
     - In solvingProcess: Cite which Rule # you applied (e.g., "Applied Rule #7: Reference")
     - In reasoning: Explain the structural/logical reason, not subjective preference
     - In derivedAnswer: The letter that passes the algorithm
     
-    **EXAMPLE ENGLISH SOLUTION**:
-    solvingProcess: "Step 1: Analyzed S_prev (introduces heritage concept) and S_next (uses 'This tradition'). Step 2: Applied Rule #7 (Reference) - S_next needs clear antecedent for 'This tradition'. Step 3: Only choice B provides concrete tradition reference. Step 4: Verified B connects logically."
-    reasoning: "Rule #7 (Reference) and Rule #18 (Concrete > Abstract). The next sentence starts with 'This tradition', requiring a clear antecedent. Choice B provides the specific tradition (heritage art), while A is too abstract. The reference must be concrete and immediate."
+    **EXAMPLE ENGLISH SOLUTION (Using New Format):**
+    solvingProcess: "Step 1: CLASSIFY - This is a Cohesion/Logic question (sentence placement). Step 2: LOCATE ANCHORS - S_prev introduces museum's mission, S_next starts with 'It is this community involvement...' requiring antecedent. Step 3: DELETE CHECK - N/A. Step 4: SPOILER CHECK - Choice A mentions 'stories' which S4 will introduce later (spoiler violation). Step 5: VERIFY - Choice B provides concrete 'community' antecedent for S_next, is functional not philosophical (Rule 32). Applied Rule #7 (Reference) and Rule #31 (Next Sentence Vet). Answer: B"
+    reasoning: "Rule #7 (Reference), Rule #31 (Next Sentence Vet), and Rule #32 (Boring Preference). The next sentence starts with 'It is this community involvement', requiring a concrete antecedent for 'community involvement'. Choice B provides the functional detail (downtown location, accessible to residents) which establishes community connection. Choice A is too abstract/philosophical and creates a spoiler by mentioning 'stories' that appear later in the passage."
     
     **FEW-SHOT EXAMPLE** (Learn from this):
     

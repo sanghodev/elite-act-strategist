@@ -316,39 +316,202 @@ export const analyzeProblem = async (
     ❌ BAD: "Check pronoun agreement"
     ✅ GOOD: "When This/That starts a sentence, look at the PREVIOUS sentence. This/That = singular idea. These/Those = plural. If previous sentence has multiple ideas, This/That refers to the ENTIRE sentence."
     
-    **ACT Pattern Rules (Use These in Your Explanation):**
+    **Your Execution Rule MUST follow this format:**
+    "When [specific trigger], immediately [specific action], because [specific reason]"
     
-    ENGLISH:
-    - Transition words (However/Therefore/Moreover) require STRONG punctuation (period or semicolon) BEFORE them
-    - Commas: NEVER between subject-verb. NEVER between verb-object
-    - Modifier placement: Opening phrase modifies the FIRST NOUN after the comma
-    - "Which" vs "That": "Which" = extra info (use commas). "That" = essential info (no commas)
+    ═══════════════════════════════════════════════════════════════
+    ACT PATTERN RULES DATABASE - Use These in Your Execution Rule
+    ═══════════════════════════════════════════════════════════════
     
-    MATH:
-    - Word problems: "is" → =, "of" → ×, "per" → ÷
-    - Geometry: If no diagram, DRAW ONE
-    - Percent change: (New - Old) ÷ Old × 100
+    **ENGLISH - PUNCTUATION:**
     
-    READING:
-    - Main idea: First paragraph + last paragraph + topic sentences
-    - Inference: Must be DIRECTLY supported by text
+    1. **Transition Words (However, Therefore, Moreover, etc.)**
+       - When: You see transition words like "however", "therefore", "moreover", "furthermore"
+       - Do: Check punctuation BEFORE the transition word
+       - Rule: Must have STRONG punctuation (period or semicolon) before transition words
+       - Wrong: "The cat slept, however, the dog ran" ❌
+       - Right: "The cat slept. However, the dog ran." ✅
+       - Right: "The cat slept; however, the dog ran." ✅
     
-    SCIENCE:
-    - Graphs: Read axis labels FIRST
-    - Experiments: Control group = no change
+    2. **Comma Rules - Subject-Verb-Object**
+       - When: You're deciding where to put commas
+       - Do: NEVER put comma between subject-verb or verb-object
+       - Rule: The core sentence (subject-verb-object) has NO commas
+       - Wrong: "The cat, slept" ❌ (comma between subject-verb)
+       - Wrong: "She ate, the food" ❌ (comma between verb-object)
+       - Right: "The cat slept" ✅
     
-    **Execution Rule Format:**
-    "When [trigger], immediately [action], because [reason]"
+    3. **Which vs That**
+       - When: Choosing between "which" and "that"
+       - Do: Ask "Is this info ESSENTIAL to identify what I'm talking about?"
+       - Rule: "That" = essential (no commas). "Which" = extra info (use commas)
+       - Example: "The book that I borrowed is good" (which book? the one I borrowed - essential)
+       - Example: "The book, which is red, is good" (extra detail about the book - not essential)
     
-    **Korean Explanation:**
-    Translate with SAME specificity. Keep "When → Do → Because" structure.
-    Example: "쉼표 앞에 'and'가 나오면, 양쪽이 모두 완전한 문장인지 확인하세요..."
-
-    [CRITICAL STANDARDS]
-    - Assume the student knows the basics. Focus on EDGE CASES and SUBTLE DISTINCTIONS.
-    - Your explanation should teach something a 34-scorer doesn't know but a 36-scorer does.
-    - Be specific enough that the student can apply this on test day in 3 seconds.
-    - If this is a repeated pattern, emphasize the URGENCY and provide a drill strategy.
+    **ENGLISH - GRAMMAR:**
+    
+    4. **Pronoun Reference (This/That/These/Those)**
+       - When: Sentence starts with "This/That/These/Those"
+       - Do: Look at the PREVIOUS sentence to find what it refers to
+       - Rule: This/That = singular or entire previous sentence. These/Those = plural items
+       - Example: "The economy crashed. Banks failed. This caused panic." (This = the entire situation)
+       - Example: "Scientists found new species. These discoveries..." (These = the species, plural)
+    
+    5. **Verb Tense with Time Markers**
+       - When: You see time words like "since", "for", "ago", "yesterday", "currently"
+       - Do: Match verb tense to the time marker
+       - Rules:
+         * "since 2010" / "for 5 years" → Present Perfect (has/have + past participle)
+         * "yesterday" / "last week" / "ago" → Simple Past
+         * "currently" / "now" / "these days" → Present Continuous (is/are + -ing)
+       - Example: "She has lived here since 2010" ✅ (since = present perfect)
+       - Example: "She lived here yesterday" ❌ (yesterday needs simple past, not present perfect)
+    
+    6. **Subject-Verb Agreement with Tricky Subjects**
+       - When: Subject has "of" phrase or collective noun
+       - Do: Find the REAL subject (ignore the "of" phrase)
+       - Rule: "The [subject] of [something]" - verb agrees with [subject], not [something]
+       - Example: "The box of cookies IS here" ✅ (subject = box, singular)
+       - Example: "The boxes of cookies ARE here" ✅ (subject = boxes, plural)
+       - Collective nouns (team, group, family) = usually singular in American English
+    
+    7. **Modifier Placement**
+       - When: Sentence starts with a descriptive phrase (modifier)
+       - Do: The FIRST NOUN after the comma must be what the modifier describes
+       - Rule: Opening modifier describes the first noun after the comma
+       - Wrong: "Running quickly, the finish line was crossed by John" ❌ (finish line wasn't running)
+       - Right: "Running quickly, John crossed the finish line" ✅ (John was running)
+    
+    **ENGLISH - STYLE & CONCISENESS:**
+    
+    8. **Redundancy**
+       - When: Two words mean the same thing
+       - Do: Delete one of them
+       - Examples:
+         * "past history" → "history" (history is always past)
+         * "advance planning" → "planning" (planning is always in advance)
+         * "completely eliminate" → "eliminate" (eliminate means completely remove)
+    
+    9. **Wordiness**
+       - When: Choosing between a short and long way to say something
+       - Do: Choose the shortest clear option
+       - Rule: ACT ALWAYS prefers concise over wordy (if meaning is the same)
+       - Wordy: "due to the fact that" → Concise: "because"
+       - Wordy: "in the event that" → Concise: "if"
+       - Wordy: "at this point in time" → Concise: "now"
+    
+    **MATH - WORD PROBLEMS:**
+    
+    10. **Translating Words to Math**
+        - When: Reading a word problem
+        - Do: Translate key words to symbols
+        - Rules:
+          * "is" / "equals" / "was" → =
+          * "of" (in context of fractions/percent) → × (multiply)
+          * "per" / "each" → ÷ (divide)
+          * "more than" / "sum" → +
+          * "less than" / "difference" → −
+        - Example: "What is 30% of 80?" → 0.30 × 80
+    
+    11. **Percent Change**
+        - When: Asked for percent increase/decrease
+        - Do: Use formula (New − Old) ÷ Old × 100
+        - Rule: ALWAYS divide by the ORIGINAL (old) value
+        - Example: Price went from $50 to $60. Percent increase = (60−50)÷50×100 = 20%
+    
+    12. **Geometry - Draw It**
+        - When: Geometry problem with no diagram OR confusing diagram
+        - Do: Draw your own diagram with labels
+        - Rule: Visual representation prevents mistakes
+        - Label everything: angles, sides, given information
+    
+    **READING:**
+    
+    13. **Main Idea Questions**
+        - When: Asked for main idea or purpose
+        - Do: Read first paragraph + last paragraph + topic sentences of middle paragraphs
+        - Rule: Main idea appears in introduction and conclusion
+        - Don't: Get distracted by interesting details in the middle
+    
+    14. **Inference Questions**
+        - When: Asked "What can be inferred?" or "The author suggests..."
+        - Do: Find DIRECT support in the text
+        - Rule: Inference must be STRONGLY supported, not just possible
+        - Wrong answer: Might be true in real life, but not supported by passage
+        - Right answer: Directly follows from information in passage
+    
+    15. **Vocabulary in Context**
+        - When: Asked what a word means in context
+        - Do: Plug in the answer choices and see which makes sense
+        - Rule: The word might have multiple meanings - choose the one that fits THIS context
+        - Don't: Just pick the most common definition
+    
+    **SCIENCE:**
+    
+    16. **Graph Reading**
+        - When: Looking at any graph or chart
+        - Do: Read axis labels FIRST, then title, then look at data
+        - Rule: Know what X-axis and Y-axis represent before interpreting
+        - Common mistake: Confusing which variable is on which axis
+    
+    17. **Experiment Design - Control Group**
+        - When: Asked about experiment setup
+        - Do: Identify the control group (the one with NO changes)
+        - Rule: Control group = baseline for comparison, receives no treatment
+        - Example: Testing new medicine → control group gets placebo (no medicine)
+    
+    18. **Conflicting Viewpoints**
+        - When: Two scientists disagree
+        - Do: Make a table: Scientist 1 believes [X], Scientist 2 believes [Y]
+        - Rule: Focus on the KEY difference, not minor details
+        - Questions often ask: "What would Scientist 1 say about Scientist 2's claim?"
+    
+    ═══════════════════════════════════════════════════════════════
+    EXECUTION RULE REQUIREMENTS
+    ═══════════════════════════════════════════════════════════════
+    
+    Your Execution Rule MUST:
+    1. Start with "When" (specific trigger the student will see)
+    2. Include "immediately" or "always" (creates urgency)
+    3. State specific action (not vague like "be careful")
+    4. End with "because" (explains the reasoning)
+    5. Be applicable in 3 seconds on test day
+    6. Use one of the patterns above as a model
+    
+    **Example Execution Rules:**
+    
+    ✅ GOOD: "When you see 'however' connecting two parts, immediately check if there's a period or semicolon before it, because transition words require strong punctuation to avoid comma splices."
+    
+    ✅ GOOD: "When choosing between 'which' and 'that', immediately ask if the info is essential to identify the noun, because 'that' is for essential info (no commas) and 'which' is for extra info (with commas)."
+    
+    ✅ GOOD: "When you see 'since [year]' or 'for [time period]', immediately use present perfect tense (has/have + past participle), because these time markers indicate an action that started in the past and continues to the present."
+    
+    ❌ BAD: "Be more careful with punctuation" (too vague)
+    ❌ BAD: "Remember comma rules" (not specific)
+    ❌ BAD: "Think about verb tense" (no actionable trigger)
+    
+    ═══════════════════════════════════════════════════════════════
+    KOREAN EXPLANATION REQUIREMENTS
+    ═══════════════════════════════════════════════════════════════
+    
+    For the Korean explanation (explanationKorean), you MUST:
+    1. Translate the Execution Rule with SAME specificity
+    2. Keep the "When → Do → Because" structure in Korean
+    3. Use clear, educational Korean that a student can understand
+    4. Include the same examples
+    
+    **Format in Korean:**
+    "[상황]을/를 보면, 즉시 [행동]하세요, 왜냐하면 [이유]이기 때문입니다."
+    
+    **Example:**
+    English: "When you see 'however' connecting two parts, immediately check if there's a period or semicolon before it, because transition words require strong punctuation."
+    
+    Korean: "'however'가 두 부분을 연결하는 것을 보면, 즉시 그 앞에 마침표나 세미콜론이 있는지 확인하세요, 왜냐하면 전환어(transition words)는 강한 구두점이 필요하기 때문입니다. 쉼표만 있으면 comma splice 오류입니다."
+    
+    ═══════════════════════════════════════════════════════════════
+    
+    **Remember**: You are teaching a smart student who needs PRECISION, not basics. 
+    Your execution rule should teach something a 34-scorer doesn't automatically do, but a 36-scorer does.
   `;
 
   const parts: any[] = [];
